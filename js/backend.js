@@ -104,25 +104,54 @@ uiApp.provider("backend",function(){
 						console.log("DB request OK: " + JSON.stringify(response.data) );
 					}, function(response){
 						//error callback
-						console.log("broken: " + JSON.stringify(response.data));
+						console.log("DB request FAILED: " + JSON.stringify(response.data));
 					});
 				console.log("storeEnquiry: ");	
 			},
 			
-			//get matters
+			//get matters - starting from the fee earner, gets all cases.
+			//params: obj - an object to which we'll attach a set of maps of the database records
 			fetchMatters: function(obj){
 				//set up data structure
-				// ** at the moment, it's ignored
+				// ** at the moment, it's ignored and we get everything
 				var data = {name:"Bob"};
 				//send it
 				$http.post("http://localhost:8080/db/fetchMattersByResponsible", data)
 					.then( function(response){ //success callback
-						//stuff the JSON into the object
-						obj=response.data;
-						console.log("DB request OK: " + JSON.stringify(obj) );
+						//stuff the JSON into the supplied object
+						obj['caseSet']=response.data;
+						console.log("Fetched " + obj['caseSet'].length + " cases.");
+						//now we can look at the cases we've got, and (async) fetch doc, person, and info records
+						//find out what doc records we need. 
+						data = {sDirection: "out", RIDs: identifyDocsNeeded(obj['caseSet'])}; // a new object of the required form
+						$http.post("http://localhost:8080/db/fetchRecordsByEdge", data)
+							.then( function(response){ //ok
+								obj['docMap']=mapByRID(response.data);
+								console.log("Doc request OK: " + JSON.stringify(response.data));
+							}, function(response){ //not ok
+								console.log("Doc request FAILED: " + JSON.stringify(response.data));								
+							});
+						//go on to find out what person records we need. 
+						data = {sDirection: "out", RIDs: identifyPeopleNeeded(obj['caseSet'])}; // a new object of the required form
+						$http.post("http://localhost:8080/db/fetchRecordsByEdge", data)
+							.then( function(response){ //ok
+								obj['personMap']=mapByRID(response.data);
+								console.log("Person request OK: " + JSON.stringify(response.data));
+							}, function(response){ //not ok
+								console.log("Person request FAILED: " + JSON.stringify(response.data));								
+							});
+						//go on to find out what info records we need. 
+						data = {sDirection: "out", RIDs: identifyInfoNeeded(obj['caseSet'])}; // a new object of the required form
+						$http.post("http://localhost:8080/db/fetchRecordsByEdge", data)
+							.then( function(response){ //ok
+								obj['infoMap']=mapByRID(response.data);
+								console.log("Info request OK: " + JSON.stringify(response.data));
+							}, function(response){ //not ok
+								console.log("Info request FAILED: " + JSON.stringify(response.data));								
+							});
 					}, function(response){
 						//error callback
-						console.log("broken: " + JSON.stringify(response.data));
+						console.log("Case request FAILED: " + JSON.stringify(response.data));
 					});
 				console.log("fetchMatters: ");	
 			}
@@ -130,7 +159,79 @@ uiApp.provider("backend",function(){
 	}
 });
 
+//function mapByRID - creates and returns a Map keyed by '@rid' from an array where '@rid' is a property of each object in the array
+function mapByRID (a){
+	var m = new Map(); //to be returned
+	for (var i=0; i<a.length; m.set(a[i]['@rid'],{fetched: new Date(), record: a[i++]}));
+	return m;
+}
 
+//identifyDocsNeeded - looks at a caseSet and identifies all the doc records we need to retrieve for those cases
+function identifyDocsNeeded(caseSet){
+	//caseSet is an array, for each case record object, in_filedIn is an array of strings with the recordID of an Edge leading to a document
+	var uniqueEdges = new Map(); //used to collect unique doc IDs in it's keys
+	var docEdges = new Array(); //the array of unique edges we will return
+	//for every doc listed in every case, store that record ID
+	for (i=0; i<caseSet.length; i++) {
+		//if this case has any docs...
+		if (caseSet[i].hasOwnProperty("in_filedIn")) {
+			for (j=0; j<caseSet[i].in_filedIn.length; j++) {
+				uniqueEdges.set([caseSet[i].in_filedIn[j]] , true);
+			}
+		}
+	}
+	//convert the keys of uniqueEdges into the values of a regular array
+	for (s of uniqueEdges.keys()) docEdges.push(s);
+	console.log("identified " + uniqueEdges.size + " unique doc edges. ");
+	return docEdges;
+}
+
+//identifyPeopleNeeded - looks at a caseSet and identifies all the person records we need to retrieve for those cases
+//people can be clients or parties or maybe something else
+function identifyPeopleNeeded(caseSet){
+	//caseSet is an array, for each case record object, in_filedIn is an array of strings with the recordID of an Edge leading to a document
+	var uniqueEdges = new Map(); //used to collect unique doc IDs in it's keys
+	var personEdges = new Array(); //the array of unique edges we will return
+	//for every doc listed in every case, store that record ID
+	for (i=0; i<caseSet.length; i++) {
+		//if this case has any clients... (it should have!!!)
+		if (caseSet[i].hasOwnProperty("in_client")) {
+			for (j=0; j<caseSet[i].in_client.length; j++) {
+				uniqueEdges.set([caseSet[i].in_client[j]] , true);
+			}
+		}
+		//if this case has any other parties... 
+		if (caseSet[i].hasOwnProperty("in_party")) {
+			for (j=0; j<caseSet[i].in_party.length; j++) {
+				uniqueEdges.set([caseSet[i].in_party[j]] , true);
+			}
+		}
+	}
+	//convert the keys of uniqueEdges into the values of a regular array
+	for (s of uniqueEdges.keys()) personEdges.push(s);
+	console.log("identified " + uniqueEdges.size + " unique person edges. ");
+	return personEdges;
+}
+
+//identifyInfoNeeded - looks at a caseSet and identifies all the info records we need to retrieve for those cases
+function identifyInfoNeeded(caseSet){
+	//caseSet is an array, for each case record object, in_filedIn is an array of strings with the recordID of an Edge leading to a document
+	var uniqueEdges = new Map(); //used to collect unique doc IDs in it's keys
+	var infoEdges = new Array(); //the array of unique edges we will return
+	//for every doc listed in every case, store that record ID
+	for (i=0; i<caseSet.length; i++) {
+		//if this case has any clients... (it should have!!!)
+		if (caseSet[i].hasOwnProperty("in_information")) {
+			for (j=0; j<caseSet[i].in_client.length; j++) {
+				uniqueEdges.set([caseSet[i].in_client[j]] , true);
+			}
+		}
+	}
+	//convert the keys of uniqueEdges into the values of a regular array
+	for (s of uniqueEdges.keys()) infoEdges.push(s);
+	console.log("identified " + uniqueEdges.size + " unique info edges. ");
+	return infoEdges;
+}
 
 /*
 What do we want to do?

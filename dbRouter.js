@@ -14,7 +14,7 @@ var OrientDB=require("orientjs"); //Orient DB API
 //middleware to log date
 router.use(function(req, res, next){
 	//log the request with the date (from contructor function)
-	console.log("Router /user " + req.originalUrl + " " + new Date().toLocaleDateString());
+	console.log("CaseNode dbRouter " + req.originalUrl + " " + new Date().toLocaleDateString());
 	next();
 });
 
@@ -196,6 +196,9 @@ router.post("/fetchMattersByResponsible", function(req,res){
 	responsible:
 	*/
 	var db=DBConn();
+	
+//select *, in_filedIn.out as docRIDs, in_client.out as clientRIDs, in_info.out as infoRIDs, in_party.out as partyRIDs from matter	
+
 	db.select().from('matter').all()
 		.then( function(result){//ok
 			res.status(200).end(JSON.stringify(result));
@@ -214,7 +217,7 @@ router.post("/fetchPersonsByID", function(req,res){
 	RIDs:"#13:12,#13:14"
 	*/
 	//format the list of IDs into a single array-like string for OrientDB, e.g. ['#13:1', '#13:2'] => "[#13:1,#13:2]"
-	sRIDs = "[" + req.body.RIDs + "]"
+	sRIDs = "[" + req.body.RIDs + "]";
 	var db=DBConn();
 	db.select().from(sRIDs).all()
 		.then( function(result){//ok
@@ -224,6 +227,31 @@ router.post("/fetchPersonsByID", function(req,res){
 		});
 	db.close();
 	
+});
+
+//fetchRecordsByEdge
+router.post("/fetchRecordsByEdge", function(req,res){
+	//validate input
+	/* expects an object
+		sDirection: "in" or "out" - the record the edges go IN to, or the records the edges come OUT from
+		RIDs: Array["#17:1", "#17:5", "#17:16", etc...] or Edge records IDs
+	*/
+	if (req.body.sDirection == "in" || req.body.sDirection == "out") {
+		//format the list of IDs into a single array-like string for OrientDB, e.g. ['#13:1', '#13:2'] => "[#13:1,#13:2]"
+		var sRIDs = "[" + req.body.RIDs.join(",") + "]";
+		// what are we going to select form the database? 
+		var db=DBConn();
+		db.select("expand(" + req.body.sDirection + ")").from(sRIDs).all()
+			.then( function(result){//ok
+				res.status(200).end(JSON.stringify(result));
+			}, function(err){//not ok
+				res.status(500).end("error: " + JSON.stringify(err));
+			});
+		db.close();
+	} else { //sDirection no correctly specified
+		res.status(400).end("Must specify sDirection = \"in\" or \"out\"")
+		
+	}
 });
 
 
