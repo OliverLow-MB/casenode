@@ -199,7 +199,7 @@ router.post("/fetchMattersByResponsible", function(req,res){
 	
 //select *, in_filedIn.out as docRIDs, in_client.out as clientRIDs, in_info.out as infoRIDs, in_party.out as partyRIDs from matter	
 
-	db.select().from('matter').all()
+	db.select("*, in_filedIn.out as docRIDs, in_client.out as clientRIDs, in_info.out as infoRIDs, in_party.out as partyRIDs").from('matter').all()
 		.then( function(result){//ok
 			res.status(200).end(JSON.stringify(result));
 		}, function(err){//not ok
@@ -210,23 +210,26 @@ router.post("/fetchMattersByResponsible", function(req,res){
 });
 
 
-//fetchPersonsByID
-router.post("/fetchPersonsByID", function(req,res){
+//fetchRecordsByID
+router.post("/fetchRecordsByID", function(req,res){
 	//validate input
-	/* expects a comma separated string of recordIDs
-	RIDs:"#13:12,#13:14"
+	/* expects an array (JSON) of recordIDs to fetch
+		{RIDs:['#13:12','#13:14']}
 	*/
-	//format the list of IDs into a single array-like string for OrientDB, e.g. ['#13:1', '#13:2'] => "[#13:1,#13:2]"
-	sRIDs = "[" + req.body.RIDs + "]";
-	var db=DBConn();
-	db.select().from(sRIDs).all()
-		.then( function(result){//ok
-			res.status(200).end(JSON.stringify(result));
-		}, function(err){//not ok
-			res.status(500).end("error: " + JSON.stringify(err));
-		});
-	db.close();
-	
+	if (req.body.RIDs) {
+		//format the list of IDs into a single array-like string for OrientDB, e.g. ['#13:1', '#13:2'] => "[#13:1,#13:2]"
+		var sRIDs = "[" + req.body.RIDs.join(",") + "]";
+		var db=DBConn();
+		db.select().from(sRIDs).all()
+			.then( function(result){//ok
+				res.status(200).end(JSON.stringify(result));
+			}, function(err){//not ok
+				res.status(500).end("error: " + JSON.stringify(err));
+			});
+		db.close();
+	} else { //invalid input, reject request
+		res.status(400).end("Must supply a JSON array of record IDs to fetch.");
+	}
 });
 
 //fetchRecordsByEdge

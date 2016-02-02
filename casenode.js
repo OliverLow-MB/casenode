@@ -47,5 +47,13 @@ app.get("/", function(req,res){
 
 //run service
 app.listen(8080, function(){
-	console.log("CaseNode running... press ctrl-c to break.");
+	console.log(
+" _____                _   _           _      \n"+
+"/  __ \\              | \\ | |         | |     \n"+
+"| /  \\/ __ _ ___  ___|  \\| | ___   __| | ___ \n"+
+"| |    / _  / __|/ _ \\     |/ _ \\ / _  |/ _ \\\n"+
+"| \\__/\\ (_| \\__ \\  __/ |\\  | (_) | (_| |  __/\n"+
+" \\____/\\__,_|___/\\___\\_| \\_/\\___/ \\__,_|\\___|\n"+
+"   CaseNode GANGSTA edition running... press ctrl-c to break.\n"+
+"-------------------------------------------------------------");
 });
