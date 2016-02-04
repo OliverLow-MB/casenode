@@ -111,55 +111,58 @@ uiApp.provider("backend",function(){
 			
 			//fetchMatters - starting from the fee earner, gets all cases.
 			//params: obj - an object to which we'll attach a set of maps of the database records
-			fetchMatters: function(obj){
+			fetchMatters: function(obj, fOnComplete){
 				//set up data structure
 				// ** at the moment, it's ignored and we get everything
 				var data = {name:"Bob"};
-				//collate keeps track of what records we have got so far and does something when we've got them all.
-				var recordSet = new function(){
-					this.gotCases = this.gotPersons = this.gotDocs = this.gotInfos = false; 
-					this.collate = function(){
+				var caseSet = []; // an intermediate array to hold the cases as we get them from the database
+				//newData class keeps track of what records we have got so far and does something when we've got them all.
+				var newData = new function(fDoneCallback){
+					//recordSets collection of recordSets 
+					this.recordSets = {};
+					//got keeps track of what we've been given so far, even if empty
+					this.got = {caseMap: false, docMap: false, personMap: false, infoMap: false}
+					//params: recordSet - a map of the records by ID, sSetName - the name of the set
+					this.collate = function( sSetName, recordSet){
+						//add the recordSet we've been given
+						this.recordSets[sSetName] = recordSet;
+						this.got[sSetName] = true;
+						/*DEBUG*/console.log("Fetched " + this.recordSets[sSetName].size + " " + sSetName + " records." );
 						//if we've got all the things we're looking for, then process them
-						if (this.gotCases == this.gotPersons == this.gotDocs == this.gotInfos == false) {
-							
-						}
+						if (this.got.caseMap && this.got.personMap && this.got.docMap && this.got.infoMap && true) {
+							obj['recordSets']=newData.recordSets;
+							fOnComplete();
+						} //if not got them all do nothing
 					}
 				};
 				//send it
 				$http.post("http://localhost:8080/db/fetchMattersByResponsible", data)
 					.then( function(response){ //success callback
-						//stuff the JSON into the supplied object
-						obj['caseSet']=response.data;
-						recordSet.gotCases = true;
-						console.log("Fetched " + obj['caseSet'].length + " cases.");
+						//response data should be a JSON array of case records
+						caseSet=response.data; 
+						newData.collate('caseMap', mapByRID(response.data));
 						//now we can look at the cases we've got, and (async) fetch doc, person, and info records
 						//find out what doc records we need. 
-						data = {RIDs: identifyDocsNeeded(obj['caseSet'])}; // a new object of the required form
+						data = {RIDs: identifyDocsNeeded(caseSet)}; // a new object of the required form	
 						$http.post("http://localhost:8080/db/fetchRecordsByID", data)
 							.then( function(response){ //ok
-								obj['docMap']=mapByRID(response.data);
-								recordSet.gotDocs = true;
-								console.log("Doc request OK: fetched " + obj.docMap.size + " doc records." );
+								newData.collate("docMap", mapByRID(response.data));
 							}, function(response){ //not ok
 								console.log("Doc request FAILED: " + JSON.stringify(response.data));								
 							});
 						//go on to find out what person records we need. 
-						data = {RIDs: identifyPeopleNeeded(obj['caseSet'])}; // a new object of the required form
+						data = {RIDs: identifyPeopleNeeded(caseSet)}; // a new object of the required form
 						$http.post("http://localhost:8080/db/fetchRecordsByID", data)
 							.then( function(response){ //ok
-								obj['personMap']=mapByRID(response.data);
-								recordSet.gotPersons = true;
-								console.log("Doc request OK: fetched " + obj.personMap.size + " person records." );
+								newData.collate('personMap', mapByRID(response.data));
 							}, function(response){ //not ok
 								console.log("Person request FAILED: " + JSON.stringify(response.data));								
 							});
 						//go on to find out what info records we need. 
-						data = {RIDs: identifyInfoNeeded(obj['caseSet'])}; // a new object of the required form
+						data = {RIDs: identifyInfoNeeded(caseSet)}; // a new object of the required form
 						$http.post("http://localhost:8080/db/fetchRecordsByID", data)
 							.then( function(response){ //ok
-								obj['infoMap']=mapByRID(response.data);
-								recordSet.gotInfos = true;
-								console.log("Doc request OK: fetched " + obj.infoMap.size + " info records." );
+								newData.collate('infoMap',mapByRID(response.data));
 							}, function(response){ //not ok
 								console.log("Info request FAILED: " + JSON.stringify(response.data));								
 							});

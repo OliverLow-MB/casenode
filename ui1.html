@@ -102,7 +102,7 @@
 				<div class="panel-group">
 					<div ng-repeat="case in caseList.list | filter:{type:'client'}" ><!-- only show clients in this list-->
 						<div ng-click="caseList.choose(case)" class="case-list-item panel panel-default" ng-class="{'active': caseList.currCaseN == $index}" ng-style="{'background-color' : case.caseStatusColor}" >
-							<span title="{{case.name}}"> {{case.clientname}} {{case.clientname}}<br /></span>
+							<span title="{{case.clientname}}"> {{case.clientname}}<br /></span>
 							<span title="{{case.title}}"> {{case.caseDetails.title}}<br /></span>
 							<span title="{{case.caseExpecting}}"> {{case.caseDetails.caseExpecting}}</span>
 						</div>

@@ -26,14 +26,27 @@ function Edge(eOut, eIn){
 	this.eIn=eIn;
 	this.eOut=eOut;
 }
-
+/* NB class keyword requires Firefox v 45, Google Chrome v 49, MS Edge v 13, or newer. 
+class TcaseFields(){
+	constructor(type){
+		this.type="";
+		this.caseDetails={};
+		this.clients=[];
+		this.contacts=[];
+		this.documents=[];
+		this.info=[];
+	}
+}
+*/
 function TcaseFields(){
-	this.type="";
-	this.caseDetails={};
-	this.clients=[];
-	this.contacts=[];
-	this.documents=[];
-	this.info=[];
+//	constructor(type){
+		this.type="";
+		this.caseDetails={};
+		this.clients=[];
+		this.contacts=[];
+		this.documents=[];
+		this.info=[];
+//	}
 }
 
 function Tcontact(){
@@ -51,8 +64,15 @@ function Tperson(p){
 	this.firstname=(p.firstname || "");
 	this.lastname=(p.lastname || "");
 	this.title=(p.title || "");
-	this.legalname=(p.legalname || ""); //this could be used nicely and set to "Mr John Smith" is undefined. 
+	this.legalname=(p.legalname || "" ); //this could be used nicely and set to "Mr John Smith" if undefined. 
 	this.salutation=(p.salutation || ""); //e.g. Miss Jones, Bob, Sirs
+	if(this.legalname==""){
+		if (this.type=="legal"){
+			this.legalname = this.companyname;
+		} else {
+			this.legalname = this.title + " " + this.firstname + " " + this.lastname;
+		}
+	}
 }
 
 function Tinfo(){
@@ -741,10 +761,43 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 	}
 	
 	//fetchMatters - fetches the matters int he first place
-	this.fetchMatters = function(obj){
-		backend.fetchMatters(obj);
-	}
+	this.fetchMatters = function(){
+		//create a callback function to processing the data when ready, binding 'this' to this angular.controller instance 
+		var compileList = (function(){
+			if (this.recordSets) {
+				/*DEBUG*/console.log("recordSets:");
+				//for each case in caseMap, build up the list
+				/* for (var [k,v] of this.recordSets.caseMap.entries()) { NB this line does not work in google Chrome*/ 
+				for (var k of this.recordSets.caseMap.keys()) { 
+					//get the current record for this case
+					var cmr = this.recordSets.caseMap.get(k).record;
+					//create the list entry, creating the list itself if required
+					var n = (this.list || (this.list=[]) ).push( new TcaseFields) -1; //n is now the new index  
+					//create the caseDetails object
+					console.log("compiling case: " + k + " - " + cmr.title + " (" + (cmr.docRIDs ? cmr.docRIDs.length : "no") + " docs)");
+					this.list[n]['type']='client';
+					this.list[n].caseDetails = cmr;
+					
+					//create the documents array - via docRIDs array (possibly missing). push each document record whose recordID in docRIDs onto the documents array
+					if (cmr.docRIDs) for (var i=0; i<cmr.docRIDs.length; i++) (this.list[n].documents || (this.list[n].documents=[])).push(this.recordSets.docMap.get(cmr.docRIDs[i]).record)
 
+					//create the clients array
+					if (cmr.clientRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
+						(this.list[n].clients || (this.list[n].clients=[])).push(new Tperson(this.recordSets.personMap.get(cmr.clientRIDs[i]).record))
+						this.list[n].clientname = this.list[n].clients[0].legalname;
+					}	
+					//create the contacts array
+					
+					//create the infos array
+				
+				} //for each case
+			} else {
+				/*DEBUG*/console.log("compileList invoked but no recordSets available")
+			}	
+		}).bind(this);  //'this' is lexically parsed, of we don't bind what 'this' means here, it will refer to the 'this' of the execution context calling the callback
+		backend.fetchMatters(this, compileList);
+	}	
+	
 	////////////////////////////////
 	// testing functions
 	//	
