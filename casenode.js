@@ -16,11 +16,20 @@ app.use(function(req,res,next){
 	next();
 });
 
+/* GLOBAL MIDDLE WARE
+*/
+
+//user-agent test
+app.use( function(req,res,next){
+	//log the user-agent
+	/*DEBUG*console.log("Request from: " + req.headers['user-agent']);/**/
+	next();
+});
+
 /*** DEVELOPMENT setting **********
 Static service for main directory
 */
 app.use(express.static("."));
-
 
 
 /* ROUTERS

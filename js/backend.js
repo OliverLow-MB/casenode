@@ -158,6 +158,13 @@ uiApp.provider("backend",function(){
 							}, function(response){ //not ok
 								console.log("Person request FAILED: " + JSON.stringify(response.data));								
 							});
+						//find the address records for the same people USING THE SAME data as above
+						$http.post("http://localhost:8080/db/fetchAddressByPersonID", data) 
+							.then( function(response){ //ok
+								newData.collate('addressMap', mapByRID(response.data));
+							}, function(response){ //not ok
+								console.log("Address request FAILED: " + JSON.stringify(response.data));								
+							});
 						//go on to find out what info records we need. 
 						data = {RIDs: identifyInfoNeeded(caseSet)}; // a new object of the required form
 						$http.post("http://localhost:8080/db/fetchRecordsByID", data)
@@ -289,6 +296,8 @@ link it to the case
 select from case where this fee earner
 select from document where isFiledIn  any of these cases
 select from person where isClient in any of these cases
+get addresses for person
+get linked info
 
 case.documents.push(each document)
 

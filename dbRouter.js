@@ -258,6 +258,30 @@ router.post("/fetchRecordsByEdge", function(req,res){
 });
 
 
+//fetchAddressByPersonID - fetches all the addresses linked to that person
+router.post("/fetchAddressByPersonID", function(req,res){
+	//validate input
+	/* expects an array (JSON) of person recordIDs 
+		{RIDs:['#13:12','#13:14']}
+	*/
+	if (req.body.RIDs) {
+		//format the list of IDs into a single array-like string for OrientDB, e.g. ['#13:1', '#13:2'] => "[#13:1,#13:2]"
+		var sRIDs = "[" + req.body.RIDs.join(",") + "]";
+		var db=DBConn();
+		//... select *, in.* as person_, out.* as address_ from addressFor 
+		db.query("SELECT out AS @rid, out.* AS address_ FROM addressFor WHERE in IN " + sRIDs).all()
+			.then( function(result){//ok
+				res.status(200).end(JSON.stringify(result));
+			}, function(err){//not ok
+				res.status(500).end("error: " + JSON.stringify(err));
+			});
+		db.close();
+	} else { //invalid input, reject request
+		res.status(400).end("Must supply a JSON array of record IDs to fetch.");
+	}
+});
+
+
 //testing function
 router.post("/test", function(req,res){
 	//connect to the database

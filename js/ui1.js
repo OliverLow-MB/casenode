@@ -783,7 +783,7 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 
 					//create the clients array
 					if (cmr.clientRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
-						(this.list[n].clients || (this.list[n].clients=[])).push(new Tperson(this.recordSets.personMap.get(cmr.clientRIDs[i]).record))
+						(this.list[n].clients || (this.list[n].clients=[])).push(this.recordSets.personMap.get(cmr.clientRIDs[i]).record);
 						this.list[n].clientname = this.list[n].clients[0].legalname;
 					}	
 					//create the contacts array
