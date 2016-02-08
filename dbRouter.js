@@ -132,11 +132,8 @@ router.post("/storeDocument", function(req,res){
 	//validate input
 	/* expects:
 	body: {
-		docObj:{@rid: person.@rid}
-		linksObj:{
-			filedIn: caseObj,
-			author: personObj
-		}
+		docObj:{@rid: }
+		caseObj: {@rid: }		
 	}
 	*/
 	var db=DBConn();
@@ -164,7 +161,7 @@ router.post("/storeDocument", function(req,res){
 				console.log("typeof caseObj is " + typeof casObj);
 				if( (typeof req.body.caseObj != 'undefined') && req.body.caseObj['@rid']){
 					db.create('EGDE','filedIn')
-					.from(result('@rid'))/*the newly inserted doc*/
+					.from(result['@rid'])/*the newly inserted doc*/
 					.to(req.body.caseObj['@rid'])/*the specified case*/
 					.one()
 					.then( function(result){//ok
@@ -181,7 +178,38 @@ router.post("/storeDocument", function(req,res){
 		db.close();
 	}
 
-});
+});//storeDocument
+
+
+//storeInfo
+//stores a single info, either new or updating, and optionally links to a matter
+router.post("storeInfo", function(req,res){
+	//validate input
+	/*Expects:
+	body:{
+		infoObj{}  - an info object
+		caseRID - the record ID of the case to attach it to.
+	}
+	*/
+	if (req.body.infoObj){
+		//either add or update 
+		/*
+		either : add info, create edge, return info
+		or: update info, create edge, return success
+		
+		*/
+		var infoRID = req.body.infoObj['@rid']; //possible undefined, that's ok.
+		//set the query according to whether we have
+		
+		
+		
+		
+		//the RID of the info is either the one we were given, or a the result from the CREATE
+	} else { //no req.body.infoObj
+		res.status(400).end("Must provide infoObj to store");
+	}
+
+});//storeInfo
 
 //storeEnquiry
 router.post("storeEnquiry", function(req,res){
@@ -199,7 +227,7 @@ router.post("/fetchMattersByResponsible", function(req,res){
 	
 //select *, in_filedIn.out as docRIDs, in_client.out as clientRIDs, in_info.out as infoRIDs, in_party.out as partyRIDs from matter	
 
-	db.select("*, in_filedIn.out as docRIDs, in_client.out as clientRIDs, in_info.out as infoRIDs, in_party.out as partyRIDs").from('matter').all()
+	db.select("*, in_filedIn.out as docRIDs, in_client.out as clientRIDs, in_informs.out as infoRIDs, in_party.out as partyRIDs").from('matter').all()
 		.then( function(result){//ok
 			res.status(200).end(JSON.stringify(result));
 		}, function(err){//not ok

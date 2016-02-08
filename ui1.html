@@ -102,7 +102,7 @@
 				<div class="panel-group">
 					<div ng-repeat="case in caseList.list | filter:{type:'client'}" ><!-- only show clients in this list-->
 						<div ng-click="caseList.choose(case)" class="case-list-item panel panel-default" ng-class="{'active': caseList.currCaseN == $index}" ng-style="{'background-color' : case.caseStatusColor}" >
-							<span title="{{case.clientname}}"> {{case.clientname}}<br /></span>
+							<span title="{{case.clients[0].name}}"> {{case.clients[0].name}}<br /></span>
 							<span title="{{case.title}}"> {{case.caseDetails.title}}<br /></span>
 							<span title="{{case.caseExpecting}}"> {{case.caseDetails.caseExpecting}}</span>
 						</div>
@@ -174,7 +174,7 @@
 				<span>Case Information</span>
 				<div class=" panel panel-default">
 					<div ng-repeat="info in caseList.current.info" ng-class-even="'even-row'" ng-class-odd="'odd-row'">
-						<span>{{info.key}} : {{info.value}}</span>
+						<span><strong>{{info.label}} :</strong> {{info.value}}</span>
 					</div>
 				</div>
 			</div>
@@ -312,8 +312,7 @@
 				</div> 
 			</div><!-- end of enquiry form -->
 		</div> <!--end of right panel-->
-	</div><!-- end of columns-->
-	
+	</div><!-- end of columns and controller-->
 </div><!-- end of outer bootstrap container-->
 
 <div id="divBottom" class="ui-widget-content">BOTTOM</div>

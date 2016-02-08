@@ -126,9 +126,11 @@ testData["caseFields"]=[
 		clients: [
 			{
 				"@rid":"#13:12",
+				name: "John Smith",
 				firstname: "John",
 				lastname: "Smith",
-				title:"Mr"
+				title:"Mr",
+				legaltype: "natural"
 			}
 		],
 		contacts: [
@@ -157,11 +159,11 @@ testData["caseFields"]=[
 			}
 		],
 		info: [
-			{key: "Claim Number", value: "A0BC1234"},
-			{key: "Court", value: "County Court Business Centre"},
-			{key: "Part 13.2 ?", value: "yes"},
-			{key: "Part 13.3 ?", value: "yes"},
-			{key: "What?", value: ""}
+			{label: "Claim Number", value: "A0BC1234"},
+			{label: "Court", value: "County Court Business Centre"},
+			{label: "Part 13.2 ?", value: "yes"},
+			{label: "Part 13.3 ?", value: "yes"},
+			{label: "What?", value: "unknown"}
 		]
 	},
 	{
@@ -637,43 +639,34 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 	//assign developer's personal object to this
 	ob=this; //refers to this controller $scope.caseList
 	obs=$scope; 
-	//get some data........
-	this.list = JSON.parse(window.localStorage.getItem("caseFields")) || testData["caseFields"];
-	//create the clientname field from the client(s) name(s)
-	for (var i=0; i<this.list.length; i++) {
-		for (var j=0; j<this.list[i].clients.length; j++) {
-			//if a legal person, use legal name, if natural, use title + firt + last
-			if (this.list[i].clients[j].type=="legal"){
-				this.list[i].clientname = this.list[i].clients[j].legalname;
-			} else {
-				this.list[i].clientname = [this.list[i].clients[j].title, this.list[i].clients[j].firstname, this.list[i].clients[j].lastname].join(" ");
-			}
-		}
-	};
-	this.templates = JSON.parse(window.localStorage.getItem("templates")) || testData["templates"];
-	$scope.myO = JSON.parse(window.localStorage.getItem("myO")) || testData["myO"];
+	//initialisation of this controller
+	this.init = function(){
+		console.log("caseList init");
+		//get some data........
+		//this.list = JSON.parse(window.localStorage.getItem("caseFields")) || testData["caseFields"];
+		this.fetchMatters(this.list);
+		this.templates = JSON.parse(window.localStorage.getItem("templates")) || testData["templates"];
+		$scope.myO = JSON.parse(window.localStorage.getItem("myO")) || testData["myO"];
 
-	//initialise local variables
-	//make a reference to teh current case for updating the UI
-	this.current=this.list[0]; //assign the currCase to the default (will eb changed later)
-	//set the initial active tabs
-	this.activeTab = {left:"Cases", middle: "File", right: "Enquiry"};
-	//initialise enquiry form
-	this.enquiry = {timestamp:0};
-	
-	//instantiate fuzzy match function
-	this.conflict = new Fuse(testData["caseFields"], {keys: ["name"], threshold: 0.35}); //0.35 by trial and error
-	this.conflictNameCheck = function(){ //triggered by ng-change on enuiry form fields
-		console.log("Conflict check...");
-		//search on the name fields, avoiding passing undefined values (for some reason, results.concat( (2nd search) ) wasn't working)
-		//var results1 = this.conflict.search(this.enquiry.firstname + " " + this.enquiry.lastname ) ;
-		//var results2 = this.conflict.search(this.enquiry.companyname + " ");
-		//display any results in the conflict box
-		//this.enquiry.conflicts=results1.concat(results2);
-		this.enquiry.conflicts = this.conflict.search(this.enquiry.caseFields['name']);
-////////why when we clear fields is the conflict showing overmatched?
+		//initialise local variables
+		//set the initial active tabs
+		this.activeTab = {left:"Cases", middle: "File", right: "Enquiry"};
+		//initialise enquiry form
+		this.enquiry = {timestamp:0};
+		
+		//instantiate fuzzy match function
+		this.conflict = new Fuse(testData["caseFields"], {keys: ["name"], threshold: 0.35}); //0.35 by trial and error
+		this.conflictNameCheck = function(){ //triggered by ng-change on enuiry form fields
+			console.log("Conflict check...");
+			//search on the name fields, avoiding passing undefined values (for some reason, results.concat( (2nd search) ) wasn't working)
+			//var results1 = this.conflict.search(this.enquiry.firstname + " " + this.enquiry.lastname ) ;
+			//var results2 = this.conflict.search(this.enquiry.companyname + " ");
+			//display any results in the conflict box
+			//this.enquiry.conflicts=results1.concat(results2);
+			this.enquiry.conflicts = this.conflict.search(this.enquiry.caseFields['name']);
+	////////why when we clear fields is the conflict showing overmatched?
+		}
 	}
-	
 	//click handler from list, change the current case
 	this.choose = function(pCase){
 		console.log("user chose " + pCase["name"]);
@@ -760,7 +753,7 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		backend.storePerson(personObj,bForceInsertIdentical);
 	}
 	
-	//fetchMatters - fetches the matters int he first place
+	//fetchMatters - fetches the matters in the first place
 	this.fetchMatters = function(){
 		//create a callback function to processing the data when ready, binding 'this' to this angular.controller instance 
 		var compileList = (function(){
@@ -774,7 +767,10 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 					//create the list entry, creating the list itself if required
 					var n = (this.list || (this.list=[]) ).push( new TcaseFields) -1; //n is now the new index  
 					//create the caseDetails object
-					console.log("compiling case: " + k + " - " + cmr.title + " (" + (cmr.docRIDs ? cmr.docRIDs.length : "no") + " docs)");
+					console.log("compiling case: " + k + " - " + cmr.title + 
+						" (" + (cmr.docRIDs ? cmr.docRIDs.length : "no") + " docs, " + 
+						(cmr.infoRIDs ? cmr.infoRIDs.length : "no") + " infos)" 
+						);
 					this.list[n]['type']='client';
 					this.list[n].caseDetails = cmr;
 					
@@ -784,17 +780,26 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 					//create the clients array
 					if (cmr.clientRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
 						(this.list[n].clients || (this.list[n].clients=[])).push(this.recordSets.personMap.get(cmr.clientRIDs[i]).record);
-						this.list[n].clientname = this.list[n].clients[0].legalname;
 					}	
 					//create the contacts array
+					//add the client contacts
 					
-					//create the infos array
-				
+					//create the info array
+					if (cmr.infoRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
+						(this.list[n].info || (this.list[n].info=[])).push(this.recordSets.infoMap.get(cmr.infoRIDs[i]).record);
+						//link the evidence source docs
+						
+					}	
+						
+					//make a reference to the current case for updating the UI
+					this.current=this.list[0]; //assign the currCase to the default (will eb changed later)
+					
 				} //for each case
 			} else {
 				/*DEBUG*/console.log("compileList invoked but no recordSets available")
 			}	
 		}).bind(this);  //'this' is lexically parsed, of we don't bind what 'this' means here, it will refer to the 'this' of the execution context calling the callback
+		//run the backend database query call
 		backend.fetchMatters(this, compileList);
 	}	
 	
@@ -829,7 +834,8 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		console.log("saved myO");
 		
 	}
-	
+	//run initialisation
+	this.init();
 	console.log("started controller caseList");
 }]);
 
@@ -844,7 +850,6 @@ uiApp.factory('notifyUser',['$window', function(appWindow){
 		appWindow.alert(msg);
 	}
 }]);
-
 
 
 /////////////////////
@@ -863,3 +868,14 @@ function populateNamesFromName(p){
 	var reMrJohnSmith = /(Mr|Mrs|Miss|Ms|Dr|Fr|Sir) ([a-z]+) ([a-z]+)/i
 }
 
+
+/*TO BE CONTINUED..... in backend.js
+uiApp.provider("backend",function(){
+			log: function(){
+			test: function(data){
+			storePerson: function(personObj, bForceInsertIdentical){
+			storeDocument: function(docObj, linksObj){
+			storeMatter: function(caseDetailsObj, personObj){
+			storeEnquiry: function(enqObj){
+			fetchMatters: function(obj, fOnComplete){
+*/

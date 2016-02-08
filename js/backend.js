@@ -1,5 +1,5 @@
 /*
-backend.js
+backend.js (OrientDB version)
 default backend provider for CaseNode UI
 communicates to RESTful web service - assumed to be the default node.js / OrientDB one
 ***MUST BE LOADED AFTER angular.js module called 'uiApp' has been defined. 
@@ -129,7 +129,7 @@ uiApp.provider("backend",function(){
 						this.got[sSetName] = true;
 						/*DEBUG*/console.log("Fetched " + this.recordSets[sSetName].size + " " + sSetName + " records." );
 						//if we've got all the things we're looking for, then process them
-						if (this.got.caseMap && this.got.personMap && this.got.docMap && this.got.infoMap && true) {
+						if (this.got.caseMap && this.got.personMap && this.got.docMap && this.got.infoMap && this.got.addressMap) {
 							obj['recordSets']=newData.recordSets;
 							fOnComplete();
 						} //if not got them all do nothing
@@ -141,7 +141,7 @@ uiApp.provider("backend",function(){
 						//response data should be a JSON array of case records
 						caseSet=response.data; 
 						newData.collate('caseMap', mapByRID(response.data));
-						//now we can look at the cases we've got, and (async) fetch doc, person, and info records
+						//now we can look at the cases we've got, and (async) fetch other records by looking at the edge links
 						//find out what doc records we need. 
 						data = {RIDs: identifyDocsNeeded(caseSet)}; // a new object of the required form	
 						$http.post("http://localhost:8080/db/fetchRecordsByID", data)

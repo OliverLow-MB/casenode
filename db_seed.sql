@@ -34,11 +34,9 @@ CREATE CLASS enquiry EXTENDS V
 CREATE PROPERTY enquiry.date DATE
 
 
-INSERT INTO person (title, firstname, lastname) VALUES
-("Mr", "Barry", "Smith"),
-("Mr", "Patrick", "Moore"),
-("Mr", "Charles", "Stuart")
-
+CREATE VERTEX person CONTENT {name: "Barry Smith", title: "Mr", firstname:"Barry", lastname:"Smith", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"barry.smith@example.com", mobile:"077nnn"}}
+CREATE VERTEX person CONTENT {name: "Sir Patrick Moore", title: "Sir", firstname:"Patrick", lastname:"Moore", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"sirpatrick@example.com", mobile:"077nn123n"}}
+CREATE VERTEX person CONTENT {name: "King Charles II", title: "His Majesty", firstname:"Charles", lastname:"Stuart", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"CharlesII@example.com"}}
 #13:9
 #13:10
 #13:11
@@ -59,6 +57,7 @@ INSERT INTO doc (doctype, date, title) VALUES
 (".doc", "2014-01-05", "Power of attorney"),
 (".pdf", "2016-01-09", "Letter from a creditors"),
 (".msg", "2016-01-15", "Default notice")
+CREATE VERTEX doc CONTENT {doctype: ".pdf", date: "2014-02-05", title: "Judgment order"}
 
 #14:7
 #14:8
@@ -67,10 +66,11 @@ INSERT INTO doc (doctype, date, title) VALUES
 #14:11
 #14:12
 #14:13
+#14:21
 
 
 
-INSERT INTO case (title) VALUES
+INSERT INTO matter (title) VALUES
 ("Application to set aside CCJ v MoneyLenders"),
 ("Application to set aside CCJ v Big Bank"),
 ("Enduring power of attorney for children")
@@ -78,6 +78,9 @@ INSERT INTO case (title) VALUES
 #12:3
 #12:4
 #12:5
+
+CREATE VERTEX info CONTENT{label: "Claim number", value: "B00AA1234"}
+#15:0
 
 //EDGE naming natural language with 'is', so "filedIn" edge FROM doc TO case because the doc is "filedIn" that case.
 //e.g. party FROM person TO case because that person IS a party to that case. 
@@ -96,6 +99,7 @@ CREATE EDGE filedIn FROM #14:10 TO #12:3
 CREATE EDGE filedIn FROM #14:11 TO #12:5
 CREATE EDGE filedIn FROM #14:12 TO #12:4
 CREATE EDGE filedIn FROM #14:13 TO #12:4
+CREATE EDGE filedIn FROM #14:21 TO #12:3
 
 
 CREATE CLASS party EXTENDS E
@@ -115,4 +119,13 @@ CREATE EDGE addressFor FROM #20:2 to #13:11 SET description="Residence"
 #21:0
 #21:1
 #21:2
+
+CREATE CLASS evidenceSource EXTENDS E
+CREATE EDGE evidenceSource FROM #15:0 TO #14:21
+
+CREATE CLASS informs EXTENDS E
+CREATE EDGE informs from #15:0 to #12:3
+
+
+
 
