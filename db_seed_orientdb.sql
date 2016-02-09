@@ -37,17 +37,22 @@ CREATE PROPERTY enquiry.date DATE
 CREATE VERTEX person CONTENT {name: "Barry Smith", title: "Mr", firstname:"Barry", lastname:"Smith", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"barry.smith@example.com", mobile:"077nnn"}}
 CREATE VERTEX person CONTENT {name: "Sir Patrick Moore", title: "Sir", firstname:"Patrick", lastname:"Moore", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"sirpatrick@example.com", mobile:"077nn123n"}}
 CREATE VERTEX person CONTENT {name: "King Charles II", title: "His Majesty", firstname:"Charles", lastname:"Stuart", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"CharlesII@example.com"}}
+CREATE VERTEX person CONTENT {name: "Moneylenders Limited", legaltype:"fictional", salutation:"Sirs", contacts:{email:"enquiries@moneylenders.example.com", phone:"0800 nnnnnn"}}
 #13:9
 #13:10
 #13:11
+#13:14
 
 CREATE VERTEX address CONTENT {line1: "10, South Ridge", line2:"Berkamstone", line3:"Surrey", ISOcountrycode: "GB", postcode:"GU99 2BR"}
 CREATE VERTEX address CONTENT {line1: "Skylight Hall", line2:"Dark Lane", line3:"Orionsville", line4:"Essex", ISOcountrycode: "GB", postcode:"CO89 2QQ"}
 CREATE VERTEX address CONTENT {line1: "Buckingham Palace", line2:"London", ISOcountrycode: "GB", postcode:"SW1A 1AA"}
+CREATE VERTEX address CONTENT {line1: "Office Block Nine", line2:"Industrial Park 3", line3:"Near the Airport", line4:"Dublin", ISOcountrycode: "IE", postcode:"D33 99"}
+CREATE VERTEX address CONTENT {line1: "Office Block Four", line2:"Industrial Park 1", line3:"Near the Airport", line4:"Dublin", ISOcountrycode: "IE", postcode:"D33 96"}
 #20:0
 #20:1 
 #20:2 
-
+#20:3
+#20:4
 
 INSERT INTO doc (doctype, date, title) VALUES
 (".pdf", "2016-01-05", "Letter from a friend"),
@@ -107,6 +112,7 @@ CREATE PROPERTY party.role STRING
 CREATE EDGE party FROM #13:9 TO #12:3 SET role="Client"
 CREATE EDGE party FROM #13:10 TO #12:4 SET role="Client"
 CREATE EDGE party FROM #13:11 TO #12:5 SET role="Client"
+CREATE EDGE party FROM #13:14 TO #12:3 SET role="Other side"
 
 
 CREATE CLASS addressFor EXTENDS E
@@ -116,6 +122,8 @@ CREATE PROPERTY addressFor.correspondence BOOLEAN
 CREATE EDGE addressFor FROM #20:0 to #13:9 SET description="Residence"
 CREATE EDGE addressFor FROM #20:1 to #13:10 SET description="Residence"
 CREATE EDGE addressFor FROM #20:2 to #13:11 SET description="Residence"
+CREATE EDGE addressFor FROM #20:3 to #13:14 
+CREATE EDGE addressFor FROM #20:4 to #13:14 SET description="Registered office"
 #21:0
 #21:1
 #21:2

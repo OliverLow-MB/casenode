@@ -121,7 +121,7 @@ uiApp.provider("backend",function(){
 					//recordSets collection of recordSets 
 					this.recordSets = {};
 					//got keeps track of what we've been given so far, even if empty
-					this.got = {caseMap: false, docMap: false, personMap: false, infoMap: false}
+					this.got = {caseMap: false, docMap: false, personMap: false, infoMap: false, addressMap : false}
 					//params: recordSet - a map of the records by ID, sSetName - the name of the set
 					this.collate = function( sSetName, recordSet){
 						//add the recordSet we've been given

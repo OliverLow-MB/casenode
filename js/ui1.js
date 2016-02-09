@@ -130,17 +130,41 @@ testData["caseFields"]=[
 				firstname: "John",
 				lastname: "Smith",
 				title:"Mr",
-				legaltype: "natural"
+				legaltype: "natural",
+				contacts: {
+					email: "john@example.com",
+					mobile: "0788888888"
+				},
+				addresses: {
+					residence: {
+						line1: "12, Barrel Yard",
+						line2: "Brewery Lane",
+						line3: "Tadcaster",
+						postcode: "TD1 1BR"
+					}
+				}
 			}
 		],
 		contacts: [
 			{	
 				party: "Client",
 				name: "John Smith",
-				mobile: "07700 900105",
-				landline: "0115 496 0200",
-				email: "johnsmith@example.com",
-				addressHTML: "12, Barrel Yard<br>Brewery Lane<br>Tadcaster<br>TD1 1BR"
+				firstname: "John",
+				lastname: "Smith",
+				title:"Mr",
+				legaltype: "natural",
+				contacts: {
+					email: "john@example.com",
+					mobile: "0788888888"
+				},
+				addresses: {
+					residence: {
+						line1: "12, Barrel Yard",
+						line2: "Brewery Lane",
+						line3: "Tadcaster",
+						postcode: "TD1 1BR"
+					}
+				}
 			},
 			{	
 				party: "Other Side",
@@ -781,8 +805,13 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 					if (cmr.clientRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
 						(this.list[n].clients || (this.list[n].clients=[])).push(this.recordSets.personMap.get(cmr.clientRIDs[i]).record);
 					}	
-					//create the contacts array
-					//add the client contacts
+					//create the contacts array - contacts is made of from parties, and their addresses 
+					if (cmr.partyRIDs) for (var i=0; i<cmr.partyRIDs.length; i++) {
+						//push the person
+						(this.list[n].contacts || (this.list[n].contacts=[])).push({person:this.recordSets.personMap.get(cmr.partyRIDs[i]).record});
+						//add the address(es) to the person, for each address_id in person.in_address.out
+						
+					}	
 					
 					//create the info array
 					if (cmr.infoRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {

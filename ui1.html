@@ -158,7 +158,12 @@
 				<div ng-repeat="contact in caseList.current.contacts">
 					<div class="panel panel-default">
 						<span ng-show="contact.party"><strong>{{contact.party}}</strong><br /></span>
-						<span ng-show="contact.name">{{contact.name}}<span ng-show="contact.position"> ({{contact.position}})</span><br /></span>
+						<span ng-show="contact.person.name">{{contact.person.name}}<span ng-show="contact.position"> ({{contact.position}})</span><br /></span>
+						<!--contacts are the contacts in the person record, and the address-->
+						<div ng-repeat="(key, value) in contact.person.contacts">
+							<span><strong>{{key}} :</strong> {{value}}</span>
+						</div>
+
 						<span ng-show="contact.mobile">Mobile: <a href='#'>{{contact.mobile}}</a><br /></span>
 						<span ng-show="contact.landline">Landline: <a href='#'>{{contact.landline}}</a><br /></span>
 						<span ng-show="contact.email">EMail: <a href='#'>{{contact.email}}</a><br /></span>

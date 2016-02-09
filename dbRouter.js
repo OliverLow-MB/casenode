@@ -238,6 +238,7 @@ router.post("/fetchMattersByResponsible", function(req,res){
 });
 
 
+
 //fetchRecordsByID
 router.post("/fetchRecordsByID", function(req,res){
 	//validate input
@@ -297,7 +298,9 @@ router.post("/fetchAddressByPersonID", function(req,res){
 		var sRIDs = "[" + req.body.RIDs.join(",") + "]";
 		var db=DBConn();
 		//... select *, in.* as person_, out.* as address_ from addressFor 
-		db.query("SELECT out AS @rid, out.* AS address_ FROM addressFor WHERE in IN " + sRIDs).all()
+		db.query("SELECT out AS @rid," + 
+			" out.line1 AS line1, out.line2 AS line2, out.line3 AS line3, out.line4 AS line4, out.line5 AS line5, out.postcode AS postcode, out.ISOcountrycode AS ISOcountrycode " +
+			"FROM addressFor WHERE in IN " + sRIDs).all()
 			.then( function(result){//ok
 				res.status(200).end(JSON.stringify(result));
 			}, function(err){//not ok
