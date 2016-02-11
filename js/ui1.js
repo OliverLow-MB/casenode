@@ -125,22 +125,24 @@ testData["caseFields"]=[
 		},
 		clients: [
 			{
-				"@rid":"#13:12",
-				name: "John Smith",
-				firstname: "John",
-				lastname: "Smith",
-				title:"Mr",
-				legaltype: "natural",
-				contacts: {
-					email: "john@example.com",
-					mobile: "0788888888"
-				},
-				addresses: {
-					residence: {
-						line1: "12, Barrel Yard",
-						line2: "Brewery Lane",
-						line3: "Tadcaster",
-						postcode: "TD1 1BR"
+				clientSince: "2015-01-05",
+				person:{
+					name: "John Smith",
+					firstname: "John",
+					lastname: "Smith",
+					title:"Mr",
+					legaltype: "natural",
+					contacts: {
+						email: "john@example.com",
+						mobile: "0788888888"
+					},
+					addresses: {
+						residence: {
+							line1: "12, Barrel Yard",
+							line2: "Brewery Lane",
+							line3: "Tadcaster",
+							postcode: "TD1 1BR"
+						}
 					}
 				}
 			}
@@ -148,38 +150,44 @@ testData["caseFields"]=[
 		contacts: [
 			{	
 				party: "Client",
-				name: "John Smith",
-				firstname: "John",
-				lastname: "Smith",
-				title:"Mr",
-				legaltype: "natural",
-				contacts: {
-					email: "john@example.com",
-					mobile: "0788888888"
-				},
-				addresses: {
-					residence: {
-						line1: "12, Barrel Yard",
-						line2: "Brewery Lane",
-						line3: "Tadcaster",
-						postcode: "TD1 1BR"
+				person: {
+					name: "John Smith",
+					firstname: "John",
+					lastname: "Smith",
+					title:"Mr",
+					legaltype: "natural",
+					contacts: {
+						email: "john@example.com",
+						mobile: "0788888888"
+					},
+					addresses: {
+						residence: {
+							line1: "12, Barrel Yard",
+							line2: "Brewery Lane",
+							line3: "Tadcaster",
+							postcode: "TD1 1BR"
+						}
 					}
 				}
 			},
 			{	
 				party: "Other Side",
-				name: "Cohen Bros. Solicitors",
-				landline: "0115 496 0201",	
-				email: "cohenbros@example.com",
-				addressHTML: "1 Tower Walk<br />Leeds<br />LS1 1SL",
-				addressDX: "DX 12345 LEEDS 99"
+				person: {
+					name: "Cohen Bros. Solicitors",
+					landline: "0115 496 0201",	
+					email: "cohenbros@example.com",
+					addressHTML: "1 Tower Walk<br />Leeds<br />LS1 1SL",
+					addressDX: "DX 12345 LEEDS 99"
+				}
 			},
 			{	
 				party: "Other Side",
-				name: "Lisa Starbuck",
-				position: "Litigation Paralegal",
-				landline: "0115 496 0214",
-				email: "lisa.cohenbros@example.com"
+				person: {
+					name: "Lisa Starbuck",
+					position: "Litigation Paralegal",
+					landline: "0115 496 0214",
+					email: "lisa.cohenbros@example.com"
+				}
 			}
 		],
 		info: [
