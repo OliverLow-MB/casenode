@@ -108,6 +108,17 @@ uiApp.provider("backend",function(){
 					});
 				console.log("storeEnquiry: ");	
 			},
+			/* 
+			populateCaseFieldsForUser
+			populates the whole caseFields data set for the current user
+			caseFieldsObj = the target object to receive the data
+			userID 
+			fOnComplete(err) = callback to call when complete
+			*/
+			populateCaseFieldsForUser: function(caseFieldsObj, userID, fOnComplete){
+				
+				
+			},
 			
 			//fetchMatters - starting from the fee earner, gets all cases.
 			//params: obj - an object to which we'll attach a set of maps of the database records

@@ -183,7 +183,7 @@ router.post("/storeDocument", function(req,res){
 
 //storeInfo
 //stores a single info, either new or updating, and optionally links to a matter
-router.post("storeInfo", function(req,res){
+router.post("/storeInfo", function(req,res){
 	//validate input
 	/*Expects:
 	body:{
@@ -212,7 +212,7 @@ router.post("storeInfo", function(req,res){
 });//storeInfo
 
 //storeEnquiry
-router.post("storeEnquiry", function(req,res){
+router.post("/storeEnquiry", function(req,res){
 	//validate input
 	
 });
@@ -312,6 +312,86 @@ router.post("/fetchAddressByPersonID", function(req,res){
 	}
 });
 
+//fetchAllByUser
+//fetches all the records needed for the UI for this user
+
+router.post("/fetchAllByUser", function(req,res){
+	//validate POST input
+	/* expect a single parameter: {userID: userID}
+	*/
+	if (req.body.userID){
+
+		var dbResults = {};
+		var dbCollector = function(){
+			this.data={};
+			this.collateMatters = function(result){ //pass the query result
+				/*expecting possibly non-existent arrays of recordID in_filedIn, in_party, in_client, in_informs */
+				//attach the result datat to the matters property
+				data['matters']=result;
+				
+				//flag matters as collated
+			}//this.collateMatters
+		}; 
+		var db = DBConn(); //database connection
+
+		//pull all the matter vertices for this user
+		/*select from matter*/
+		db.select()
+		.from("matter")
+		/*.where(... however we select by user)*/
+		.one()
+		.then( function(result){
+			dbResults['matter'] = result;
+			//collect all the filedIn edge record IDs
+			/*DEBUG*/console.log(JSON.stringify(result['in_filedIn']));
+			/*
+			for some reason, result[0]['in_filedIn'] does not seem to be an array...
+			*/
+			console.log(result['in_filedIn']);
+			
+			//try another query on the same connection
+			db.select()
+			.from(result['in_filedIn'])//.from won't accept an array, it must be a string
+			.all()
+			.then( function(result){
+				dbResults['filedIn'] = result;
+				res.status(200).end(JSON.stringify(dbResults));
+			}, function(err){
+				res.status(500).end(JSON.stringify(err));
+			}
+			);
+			
+		}, function(err){
+			//if error, just return the error
+			res.status(500).end(JSON.stringify(err));
+		}); //db
+		
+		//collate the edges: filedIn, client, party, informs
+		
+		//collect all the client edges
+		
+		//from the client edges, get the list of person vertices
+		
+		//get the person vertices
+		
+		//from the person vertices, get all the addressFor edges
+		
+		//from the party edges, get all the person vertices 
+		// - NB we have already got some of these, and some of them are bound to be the same. We only want to give return unique ones
+		
+	} else {
+		res.status(404).end("No userID POSTed.")
+	}
+});
+
+////////////////////////////////////////
+// utility functions
+//
+
+//colligate - 
+function colligate(results, sKey){
+	
+}
 
 //testing function
 router.post("/test", function(req,res){
