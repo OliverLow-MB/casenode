@@ -322,16 +322,31 @@ router.post("/fetchAllByUser", function(req,res){
 	if (req.body.userID){
 
 		var dbResults = {};
-		var dbCollector = function(){
-			this.data={};
-			this.collateMatters = function(result){ //pass the query result
+		
+		//dbCollector used to collect the results as they come in and send the final result when we've got everything.
+		var dbCollector = new function(res){
+			
+			this.data={}; //holds the data as we colelct it
+			
+			//track what we've got so far
+			this.got={matter:false, filedIn:false, doc: false, person: false, addressFor: false, address: false, party: false, informs: false, info: false };
+			
+			//collate 
+			this.collate = function(classname, result){ //pass the query result
 				/*expecting possibly non-existent arrays of recordID in_filedIn, in_party, in_client, in_informs */
-				//attach the result datat to the matters property
-				data['matters']=result;
+				//attach the result data to the matters property
+				data['matter']=result;
 				
 				//flag matters as collated
+				this.got.matter = true;
 			}//this.collateMatters
-		}; 
+			
+			//getRIDsNeeded - returns an array of the record IDs of a certain type, e.g. filedIn, that are needed to complete the current data set
+			this.getRIDsNeeded = function(classname){
+				
+			}
+		}(res);//pass our current http response object to end with
+		
 		var db = DBConn(); //database connection
 
 		//pull all the matter vertices for this user
@@ -339,32 +354,35 @@ router.post("/fetchAllByUser", function(req,res){
 		db.select()
 		.from("matter")
 		/*.where(... however we select by user)*/
-		.one()
+		.all()
 		.then( function(result){
 			dbResults['matter'] = result;
-			//collect all the filedIn edge record IDs
-			/*DEBUG*/console.log(JSON.stringify(result['in_filedIn']));
-			/*
-			for some reason, result[0]['in_filedIn'] does not seem to be an array...
-			*/
-			console.log(result['in_filedIn']);
-			
-			//try another query on the same connection
+
+			//query for all the filedn edges
 			db.select()
-			.from(result['in_filedIn'])//.from won't accept an array, it must be a string
+			.from("[" + getRIDs(result, "in_filedIn") + "]") //.from needs a string, not an array
 			.all()
 			.then( function(result){
 				dbResults['filedIn'] = result;
-				res.status(200).end(JSON.stringify(dbResults));
+				db.select().from("[" + getRIDs(dbResults['matter'], "in_client") + "]").all()
+				.then (function(result){
+					
+					dbResults["client"] = result;
+					db.select()
+					.from("[" + getRIDs(dbResults['matter'], "in_party") + "]")
+					.all()
+					.then (function(result){
+						res.status(200).end(JSON.stringify(dbResults));
+					})
+				})
 			}, function(err){
 				res.status(500).end(JSON.stringify(err));
-			}
-			);
-			
+			})
 		}, function(err){
 			//if error, just return the error
 			res.status(500).end(JSON.stringify(err));
-		}); //db
+		})
+		;//end of db query
 		
 		//collate the edges: filedIn, client, party, informs
 		
@@ -388,9 +406,16 @@ router.post("/fetchAllByUser", function(req,res){
 // utility functions
 //
 
-//colligate - 
-function colligate(results, sKey){
-	
+//siftByKey - sifts a result and compiles all the record ID's for each case of the key we are after, e.g. in_filedIn
+function getRIDs(results, sKey){
+	var h = {};
+	for (var i=0; i < results.length; i++) {
+		//get an array from the RidBag object
+		var a = results[i][sKey].all(); 
+		//compile them
+		for (var j=0; j < a.length; j++) h[a[j]] = true;
+	}
+	return Object.keys(h).join(",");
 }
 
 //testing function
