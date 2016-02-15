@@ -358,65 +358,101 @@ router.post("/fetchAllByUser", function(req,res){
 		.then( function(result){
 			dbResults['matter'] = result;
 
-			//query for all the filedn edges
+
+			//query for all the filedIn edges
+			/*DEBUG/console.log("query filedIn");/**/
 			db.select()
-			.from("[" + getRIDs(result, "in_filedIn") + "]") //.from needs a string, not an array
+			.from("[" + getRIDs(dbResults['matter'], "in_filedIn").join(",") + "]") //.from needs a string, not an array
 			.all()
 			.then( function(result){
+
+			//next get all client edges
 				dbResults['filedIn'] = result;
-				db.select().from("[" + getRIDs(dbResults['matter'], "in_client") + "]").all()
+				/*DEBUG/console.log("query filedIn");/**/
+				db.select().from("[" + getRIDs(dbResults['matter'], "in_client").join(",") + "]").all()
 				.then (function(result){
-					
+					//collect the client edges
 					dbResults["client"] = result;
-					db.select()
-					.from("[" + getRIDs(dbResults['matter'], "in_party") + "]")
-					.all()
+
+					//next get all the party edges
+					/*DEBUG/console.log("query client");/**/
+					db.select().from("[" + getRIDs(dbResults['matter'], "in_party").join(",") + "]").all()
 					.then (function(result){
-						res.status(200).end(JSON.stringify(dbResults));
-					})
-				})
-			}, function(err){
-				res.status(500).end(JSON.stringify(err));
-			})
+						//collect the party edges
+						dbResults["party"] = result;
+
+						//next get the informs edges
+						/*DEBUG/console.log("query informs");/**/
+						db.select("*, out as out").from("[" + getRIDs(dbResults['matter'], "in_informs").join(",") + "]").all()
+						.then (function(result){
+							//collect the informs edges
+							dbResults["informs"] = result;
+							/*SEND/res.status(200).end(JSON.stringify(dbResults));/**/
+							//that's it for the first run through, now we go on to the second level vertices
+
+							//next, get the doc vertices
+							/*DEBUG/console.log("query docs");/**/
+							db.select().from("[" + getRIDs(dbResults['filedIn'], "out").join(",") + "]").all()
+							.then (function(result){
+								//collect the docs
+								dbResults["doc"] = result;
+
+								//next get the person records - they come from client OR party
+								db.select().from("[" + 
+									collate( [getRIDs(dbResults['client'], "out") , getRIDs(dbResults['party'], "out")] )
+									.join(",") + "]").all()
+								.then( function(result) {
+									dbResults['person']=result;
+									
+									//next, get info vertices, from informs edges
+									db.select().from("[" + getRIDs(dbResults['informs'], "out").join(",") + "]").all()
+									.then( function(result){
+										dbResults['info']=result;
+										
+										//next, get addressFor edges from person vertices
+										db.select().from("[" + getRIDs(dbResults['person'], "in_addressFor").join(",") + "]").all()
+										.then( function(result){
+											dbResults['addressFor']=result;
+											
+											//finally, get the address records from the addressFor edges
+											db.select().from("[" + getRIDs(dbResults['addressFor'], "out").join(",") + "]").all()
+											.then(function(result){
+												//send the results!!! yay
+												res.status(200).end(JSON.stringify(dbResults));
+											}, function(err){res.status(500).end(JSON.stringify(result))})
+										}, function(err){res.status(500).end(JSON.stringify(result))})
+									}, function(err){res.status(500).end(JSON.stringify(result))})
+								}, function(err){res.status(500).end(JSON.stringify(result))})
+							}, function(err){res.status(500).end(JSON.stringify(result))})
+						}, function(err){res.status(500).end(JSON.stringify(result))})
+					}, function(err){res.status(500).end(JSON.stringify(result))})
+				}, function(err){res.status(500).end(JSON.stringify(result))})
+			}, function(err){res.status(500).end(JSON.stringify(result))})
 		}, function(err){
 			//if error, just return the error
 			res.status(500).end(JSON.stringify(err));
 		})
 		;//end of db query
 		
-		//collate the edges: filedIn, client, party, informs
-		
-		//collect all the client edges
-		
-		//from the client edges, get the list of person vertices
-		
-		//get the person vertices
-		
-		//from the person vertices, get all the addressFor edges
-		
-		//from the party edges, get all the person vertices 
-		// - NB we have already got some of these, and some of them are bound to be the same. We only want to give return unique ones
-		
-	} else {
-		res.status(404).end("No userID POSTed.")
+	} else { //if valid input
+		res.status(404).end("Invalid POST. Did you post a valid userID?")
 	}
 });
 
-////////////////////////////////////////
-// utility functions
-//
 
-//siftByKey - sifts a result and compiles all the record ID's for each case of the key we are after, e.g. in_filedIn
-function getRIDs(results, sKey){
-	var h = {};
-	for (var i=0; i < results.length; i++) {
-		//get an array from the RidBag object
-		var a = results[i][sKey].all(); 
-		//compile them
-		for (var j=0; j < a.length; j++) h[a[j]] = true;
+router.post("/logStuff", function(req, res){
+	//connect the DB and log some stuff form it
+	var db = DBConn();
+	db.select().from('matter').one()
+	.then(function(result){
+		console.log("OK:\n");
+		console.log(result.in_filedIn);
+	}, function(err){
+		console.log("ERROR:\n" + JSON.stringify(result));
 	}
-	return Object.keys(h).join(",");
-}
+	);
+	db.close();
+});
 
 //testing function
 router.post("/test", function(req,res){
@@ -428,6 +464,42 @@ router.post("/test", function(req,res){
 	db.close();
 	//res.end(" ... closed.");
 });
+
+////////////////////////////////////////
+// utility functions
+//
+
+//collating arrays
+function collate(a){ // pass an array of arrays to collate into one array
+    var h = { n: {}, s: {} };
+    for (var i=0; i < a.length; i++) for (var j=0; j < a[i].length; j++) 
+        (typeof a[i][j] === "number" ? h.n[a[i][j]] = true : h.s[a[i][j]] = true);
+    var b = Object.keys(h.n);
+    for (var i=0; i< b.length; i++) b[i]=Number(b[i]);
+    return b.concat(Object.keys(h.s));
+}
+
+//getRIDs - makes the SQL query from the results of a previous one
+function getRIDs(results, sKey) {
+	/*exects results as query result an array or records, sKey name of a field in there, could be a RidBag type, could be a single*/
+	var h = {};
+	for (var i=0; i < results.length; i++) {
+		//proceed if sKey is defined on this records
+		if (results[i][sKey]){
+			//identify results[i][sKey'] - is it a RidBag? 
+			if (results[i][sKey].all) { // a RidBag will have the function all defined
+				var a = results[i][sKey].all(); 
+				//compile them
+				for (var j=0; j < a.length; j++) h[a[j]] = true;
+			} else {  // not a RidBag so assume it's the other kind that we get from an edge and we want toJSON which is defined in orientjs or its libs
+				h[results[i][sKey].toJSON()]=true;
+			}
+		}
+	}
+	//return either our list, or undefined
+	return Object.keys(h);
+}
+
 
 //export the module for the main app to use
 module.exports=router;
