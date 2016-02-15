@@ -2,7 +2,7 @@ body {
 	font-family: sans-serif;
 	}
 .case-list-item {
-	white-space: nowrap;
+	white-space: wrap;
 	overflow: hidden;
 	cursor: pointer;
 }

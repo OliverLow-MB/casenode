@@ -15,8 +15,9 @@ jquery.js
 jquery-ui.js
 */
 
-//developer's personal object
+//developer's personal objects
 var ob = {};
+var obr = {};
 
 ////////////////////////////
 //define object classes
@@ -788,27 +789,31 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 	//fetchMatters - fetches the matters in the first place
 	this.fetchMatters = function(){
 		//create a callback function to processing the data when ready, binding 'this' to this angular.controller instance 
-		var compileList = (function(){
+		var compileList = (function(){ 
+
+					//make a reference to the current case for updating the UI
+					this.current=this.list[0]; //assign the currCase to the default (will eb changed later)
+		
+		return
+		
 			if (this.recordSets) {
 				/*DEBUG*/console.log("recordSets:");
 				//for each case in caseMap, build up the list
 				/* for (var [k,v] of this.recordSets.caseMap.entries()) { NB this line does not work in google Chrome*/ 
-				for (var k of this.recordSets.caseMap.keys()) { 
+				for (var k of this.recordSets.matter.keys()) { 
 					//get the current record for this case
-					var cmr = this.recordSets.caseMap.get(k).record;
+					var cmr = this.recordSets.matter.get(k).record;
 					//create the list entry, creating the list itself if required
 					var n = (this.list || (this.list=[]) ).push( new TcaseFields) -1; //n is now the new index  
 					//create the caseDetails object
 					console.log("compiling case: " + k + " - " + cmr.title + 
-						" (" + (cmr.docRIDs ? cmr.docRIDs.length : "no") + " docs, " + 
+						" (" + (cmr.in_filedIn ? cmr.in_filedIn.length : "no") + " docs, " + 
 						(cmr.infoRIDs ? cmr.infoRIDs.length : "no") + " infos)" 
 						);
 					this.list[n]['type']='client';
 					this.list[n].caseDetails = cmr;
 					
-					//create the documents array - via docRIDs array (possibly missing). push each document record whose recordID in docRIDs onto the documents array
-					if (cmr.docRIDs) for (var i=0; i<cmr.docRIDs.length; i++) (this.list[n].documents || (this.list[n].documents=[])).push(this.recordSets.docMap.get(cmr.docRIDs[i]).record)
-
+						
 					//create the clients array
 					if (cmr.clientRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
 						(this.list[n].clients || (this.list[n].clients=[])).push(this.recordSets.personMap.get(cmr.clientRIDs[i]).record);
@@ -821,15 +826,7 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 						
 					}	
 					
-					//create the info array
-					if (cmr.infoRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
-						(this.list[n].info || (this.list[n].info=[])).push(this.recordSets.infoMap.get(cmr.infoRIDs[i]).record);
-						//link the evidence source docs
 						
-					}	
-						
-					//make a reference to the current case for updating the UI
-					this.current=this.list[0]; //assign the currCase to the default (will eb changed later)
 					
 				} //for each case
 			} else {

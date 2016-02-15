@@ -1,0 +1,43 @@
+OrientDB results
+
+select edges
+
+[ { '@type': 'd',
+    '@class': 'informs',
+    out: { [String: '#15:0'] cluster: 15, position: 0 },
+    in: { [String: '#12:3'] cluster: 12, position: 3 },
+    '@rid': { [String: '#23:0'] cluster: 23, position: 0 },
+    '@version': 1 } ]
+	
+
+console.log(result[0].out)
+{ [String: '#14:7'] cluster: 14, position: 7 }
+	
+db.select().from('#13:9').all()
+console.log(result[0].out_client);	
+
+Bag {
+  serialized: 'AQAAAAEAEAAAAAAAAAAFAAAAAAAAAAAAAA==',
+  uuid: null,
+  _content: [],
+  _buffer: null,
+  _type: null,
+  _offset: 0,
+  _current: -1,
+  _size: null,
+  _prefetchedRecords:
+   { '#13:9':
+      { '@type': 'd',
+        '@class': 'person',
+        title: 'Mr',
+        firstname: 'Barry',
+        lastname: 'Smith',
+        legaltype: 'natural',
+        contacts: [Object],
+        out_: [Object],
+        out_client: [Circular],
+        out_party: [Object],
+        in_addressFor: [Object],
+        name: 'Barry Smith',
+        '@rid': [Object],
+        '@version': 10 } } }

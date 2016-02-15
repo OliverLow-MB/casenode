@@ -120,9 +120,70 @@ uiApp.provider("backend",function(){
 				
 			},
 			
-			//fetchMatters - starting from the fee earner, gets all cases.
-			//params: obj - an object to which we'll attach a set of maps of the database records
+			//fetchMatters - starting from the fee earner user, gets all cases.
+			//params: obj - an object to which we'll attach a "recordSets" property - a set of maps of the database records
 			fetchMatters: function(obj, fOnComplete){
+				var data = {userID: "Nemo"};//the user ID we start the fetch from, i.e. all matters for that user
+				var recordSets = {} ; //to be attached to the object passed
+				$http.post("http://localhost:8080/db/fetchAllByUser", data)
+				.then( function(res){//OK
+					//build up recordSets (Maps) from the data
+					for (var prop in res.data){
+						if (res.data.hasOwnProperty(prop)){
+							recordSets[prop] = mapByRID(res.data[prop])
+						}
+					}
+		obr=res.data
+					//assign recordSets to the object passed
+					obj['recordSets']=recordSets;
+					/*DEBUG*/console.log("recordSets:");
+					
+					//build up the data list 
+					
+					//for each matter
+					for (var k of recordSets.matter.keys()) { 
+						//get the current record for this case
+						var cmr = recordSets.matter.get(k).record;
+						//create the list entry, creating the list itself if required
+						var n = (obj.list || (obj.list=[]) ).push(new TcaseFields) -1 ;//n is now the new index
+						//create the caseDetails object
+						console.log("compiling case: " + k + " - " + cmr.title + 
+							" (" + (cmr.in_filedIn ? cmr.in_filedIn.length : "no") + " docs, " + 
+							(cmr.in_informs ? cmr.in_informs.length : "no") + " infos)" 
+							);
+						obj.list[n]['type']='client';
+						obj.list[n].caseDetails = cmr;
+						//create the documents array - via docRIDs array (possibly missing). push each document record whose recordID in docRIDs onto the documents array
+						//if (cmr.docRIDs) for (var i=0; i<cmr.docRIDs.length; i++) (this.list[n].documents || (this.list[n].documents=[])).push(this.recordSets.docMap.get(cmr.docRIDs[i]).record)
+						if (cmr.in_filedIn) {
+							//for each filedIn - push the doc record the filedIn points to
+							for (var i = 0; i< cmr.in_filedIn.length; i++) 
+								(obj.list[n].documents || (obj.list[n].documents=[])).push(
+									recordSets.doc.get( recordSets.filedIn.get(cmr.in_filedIn[i]).record.out).record)
+						}
+						//create the info array
+						if (cmr.in_informs) for (var i=0; i<cmr.in_informs.length; i++) {
+							(obj.list[n].info || (obj.list[n].info=[])).push(
+								obj.recordSets.info.get(recordSets.informs.get(cmr.in_informs[i]).record.out).record);
+							//link the evidence source docs
+						}	
+						
+						//create the clients array UNFINSHED
+						if (cmr.in_client) for (var i=0; i<cmr.in_client.length; i++) {
+							(obj.list[n].client || (obj.list[n].client=[])).push(
+								obj.recordSets.person.get(recordSets.client.get(cmr.in_client[i]).record.out).record);
+						}	
+						
+					} //for each case
+					
+					//call the callback
+					fOnComplete();
+				}, function (err){ // not OK
+					console.log(err);
+				})
+				
+			},
+			OLDfetchMatters: function(obj, fOnComplete){
 				//set up data structure
 				// ** at the moment, it's ignored and we get everything
 				var data = {name:"Bob"};

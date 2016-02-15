@@ -111,7 +111,7 @@
 			</div>
 			<div ng-show="caseList.activeTab['left'] == 'Enquiries'">
 				<div class="panel-group">
-					<div ng-repeat="case in caseList.list | filter:{type:'enquiry'}" >
+					<div ng-repeat="case in caseList.list | filter:{type:'enquiry'} track by $index" >
 						<div ng-click="caseList.choose(case)" class="case-list-item panel panel-default" ng-class="{'active': caseList.currCaseN == $index}" ng-style="{'background-color' : case.caseStatusColor}" >
 							<span title="{{case.name}}"> {{case.clientname}}<br /></span>
 							<span title="{{case.category}}"> {{case.enquiryDetails.category}}<br /></span>
@@ -143,7 +143,7 @@
 					<span title="{{caseList.current.title}}">{{caseList.current.caseDetails.title}}</span><br />
 					<span title="{{caseList.current.caseExpecting}}">{{caseList.current.caseDetails.caseExpecting}}</span>
 				</div>
-				<div ng-repeat="doc in caseList.current.documents"> 
+				<div ng-repeat="doc in caseList.current.documents track by $index"> 
 					<div class="panel panel-default doc-list-item" ng-class-even="'even-row'" ng-class-odd="'odd-row'"
 						ng-click="caseList.docPreview(doc)" >
 						{{doc.date}}
@@ -155,7 +155,7 @@
 			<!-- case contacts tab -->
 			<div ng-show="caseList.activeTab['middle'] == 'Contact'" class="panel-group">
 				<span>Contact details</span>
-				<div ng-repeat="contact in caseList.current.contacts">
+				<div ng-repeat="contact in caseList.current.contacts track by $index">
 					<div class="panel panel-default">
 						<span ng-show="contact.party"><strong>{{contact.party}}</strong><br /></span>
 						<span ng-show="contact.person.name">{{contact.person.name}}<span ng-show="contact.position"> ({{contact.position}})</span><br /></span>
