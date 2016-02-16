@@ -20,7 +20,7 @@
 <!-- layout -->
 
 <body >
-<div class="container"> <!-- outer bootstrap CSS container div-->
+<div class="container" id="caseListController" ng-controller="caseList as caseList"> <!-- outer bootstrap CSS container div-->
 	<!--top nav and status bar -->
 
 	<div class="row">	
@@ -69,6 +69,7 @@
 					</div>
 					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span> Search</button>
 				</form>
+				<button onclick="$('#divEnquiry').dialog('open')">New Enq</BUTTON>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
@@ -87,18 +88,18 @@
 		</nav>		
 	</div>
 	<!-- main page section for interacting with cases -->	
-	<div ng-controller="caseList as caseList" class="row">
+	<div class="row">
 		<input ng-model="myO.name"><button ng-click="savemyO()">SAVE</button>
 		<button ng-click="caseList.notifyUser(myO.name)">Notify</button>
 		<!-- my cases status column -->
 		<div class="col-sm-2">
 			<!--nav tabs - cases, enquiries -->
 			<ul class="nav nav-tabs">
-				<li ng-click="caseList.setTab('Cases','left')" ng-class="{active: caseList.activeTab['left'] == 'Cases'}"><a href="">Cases</a></li>
+				<li ng-click="caseList.setTab('Clients','left')" ng-class="{active: caseList.activeTab['left'] == 'Clients'}"><a href="">Clients</a></li>
 				<li ng-click="caseList.setTab('Enquiries','left')" ng-class="{active: caseList.activeTab['left'] == 'Enquiries'}"><a href="">Enquiries</a></li>
 			</ul>
 			<!-- cases list-->
-			<div ng-show="caseList.activeTab['left'] == 'Cases'">
+			<div ng-show="caseList.activeTab['left'] == 'Clients'">
 				<div class="panel-group">
 					<div ng-repeat="case in caseList.list | filter:{type:'client'}" ><!-- only show clients in this list-->
 						<div ng-click="caseList.choose(case)" class="case-list-item panel panel-default" ng-class="{'active': caseList.currCaseN == $index}" ng-style="{'background-color' : case.caseStatusColor}" >
@@ -124,6 +125,7 @@
 
 		<!-- case history column -->
 		<div id="divCurrentCase" class="col-sm-3">
+			
 			<!--nav tabs - Diary, File, Contact, Info -->
 			<ul class="nav nav-tabs">
 				<li ng-click="caseList.setTab('Diary','middle')" ng-class="{active: caseList.activeTab['middle'] == 'Diary'}"><a href="">Diary</a></li>
@@ -131,10 +133,12 @@
 				<li ng-click="caseList.setTab('Contact','middle')" ng-class="{active: caseList.activeTab['middle'] == 'Contact'}" class="dropdown"><a href='#'>Contact</a></li>
 				<li ng-click="caseList.setTab('Info','middle')" ng-class="{active: caseList.activeTab['middle'] == 'Info'}" class="dropdown"><a href='#'>Info</a></li>
 			</ul>
+			
 			<!--Diary tab - shows events, jobs to do, done, etc. -->
 			<div ng-show="caseList.activeTab['middle'] == 'Diary'" class="panel-group">
 			Diary
 			</div>
+			
 			<!-- case file tab - shows docs etc on the file-->
 			<div ng-show="caseList.activeTab['middle'] == 'File'" class="panel-group">
 			<span>Current {{caseList.current.type}} file</span>
@@ -149,12 +153,13 @@
 				<div ng-repeat="doc in caseList.current.documents track by $index"> 
 					<div class="panel panel-default doc-list-item" ng-class-even="'even-row'" ng-class-odd="'odd-row'"
 						ng-click="caseList.docPreview(doc)" >
-						{{doc.date}}
+						{{doc.date|date:0}}
 						<span ng-class="{'ui-icon':1, 'ui-icon-blank':!doc.doctype, 'ui-icon-note':doc.doctype=='.txt', 'ui-icon-document':doc.doctype=='.doc'||doc.doctype=='.pdf', 'ui-icon-mail-closed':doc.doctype=='.eml'||doc.doctype=='.msg'}" style="display:inline-block" title="{{doc.doctype}}"></span>
 						<span title="{{doc.title}}">{{doc.title}}</span>
 					</div>
 				</div>
 			</div>
+			
 			<!-- case contacts tab -->
 			<div ng-show="caseList.activeTab['middle'] == 'Contact'" class="panel-group">
 				<span>Contact details</span>
@@ -208,6 +213,7 @@
 				<div class="btn btn-default" title="Counsel">Csl</div>
 			</div>
 		</div>
+		
 		<!-- right panel - tabbed -->
 		<div class="col-sm-6">
 			<!-- tabs -->
@@ -245,7 +251,7 @@
 						<textarea></textarea>
 					</div>
 				<form>
-			</div><!-- end of attendance not tab-->
+			</div><!-- end of attendance note tab-->
 			<!-- dates tab-->
 			<div ng-show="caseList.activeTab['right'] == 'Date'">
 			Date: <input type="text" id="datePicker" placeholder="Click for calendar"></input><br />
@@ -265,63 +271,71 @@
 				</div>
 			</div><!--end of templates tab-->
 			
-			<!--enquiry form -->
-			<div ng-show="caseList.activeTab['right'] == 'Enquiry'">
-				<div id="divEnquiry">
-					<!-- Data is linked to this.enquiry which points to caseList[...] which is created if needed -->
-					<div class="row">
-						<div class="col-sm-6">
-							<h3>New Enquiry</h3>
-							<!-- show the word "saved" or a Save button is enquiry.modified is defined-->
-							<div ng-show="caseList.enquiry.modified">
-								<!--show "saved" or save button if modified-->
-								<span ng-hide="caseList.enquiry.modified">SAVED</SPAN>
-								<button ng-show="caseList.enquiry.modified">SAVE</BUTTON>
-							</div>
-						</div>
-						<!--conflit check panel-->
-						<div class="conflict-check-panel col-sm-6">
-							<span>Automatic conflict check</span>
-							<!--if no conflicts, show green-->
-							<div ng-hide="caseList.enquiry.conflicts.length" class="alert-success">No conflicts found</div>
-							<!-- if there are any, display them-->
-							<div ng-show="caseList.enquiry.conflicts.length" ng-repeat="conflict in caseList.enquiry.conflicts track by $index" class="alert-warning">
-								<a href='#'>{{conflict.name}}</a>
-							</div>
-						</div>
-					</div>
-					<div class="row panel panel-default form-horizontal col-sm-12">
-						<div class="row form-group">
-							<input ng-model="caseList.enquiry.nametitle" ng-change="caseList.autoSaveEnquiry()" type="text" placeholder="Title" size=5>
-							<input ng-model="caseList.enquiry.caseFields['name']" ng-change="caseList.conflictNameCheck(); caseList.autoSaveEnquiry()" type="text" placeholder="Name" size=21>
-						</div>
-						<div class="row form-group">
-							<input ng-model="caseList.enquiry.caseFields['contacts'][0]['mobile']" type="text" placeholder="Mobile" size=13>
-							<input ng-model="caseList.enquiry.caseFields['contacts'][0]['landline']" type="text" placeholder="Landline" size=13>
-							<input ng-model="caseList.enquiry.caseFields['contacts'][0]['email']" type="text" placeholder="Email" size=30>
-						</div>
-						<div class="row form-group">
-							<input ng-model="caseList.enquiry.address" type="text" placeholder="Address" size=50>
-							<input ng-model="caseList.enquiry.postcode" type="text" placeholder="Postcode" size=12>
-						</div>
-						<div class="row">
-							<textarea ng-model="caseList.enquiry.caseFields['documents'][0]['content']" cols=60 rows=10 placeholder="Notes"></textarea>
-						</div>
-						<div class="row">
-							<input ng-model="caseList.enquiry.title" size=60 placeholder="Matter">
-							<input ng-model="caseList.enquiry.category" size=20 placeholder="Category">
-							<div ng-controller="feeEarners"><!-- this uses the feeEarner controller-->
-								<select ng-model="selected" ng-options="opt.initials for opt in list"></select>
-								{{selected.name}}
-							</div>
-						</div>
-					</div>
-					<button ng-click="caseList.saveEnquiry()">SAVE ENQUIRY</button>
-				</div> 
-			</div><!-- end of enquiry form -->
+
 		</div> <!--end of right panel-->
-	</div><!-- end of columns and controller-->
-</div><!-- end of outer bootstrap container-->
+		
+		<!-- dialog boxes -->
+		<div id="dialogDocPreview" title="Document">
+			<strong>{{caseList.currPreviewDoc.title}}</strong><br />
+			<div ng-show="caseList.currPreviewDoc.doctype == '.txt'" style="white-space:pre-wrap">{{caseList.currPreviewDoc.contents}}</div>
+		</div>
+
+		<!--New Enquiry form-->	
+		<div id="divEnquiry">
+			<div class="row">
+				<div >
+					<h3>New Enquiry</h3>
+					<!-- show the word "saved" or a Save button is enquiry.modified is defined-->
+					<div ng-show="caseList.enquiry.modified">
+						<!--show "saved" or save button if modified-->
+						<span ng-hide="caseList.enquiry.modified">SAVED</SPAN>
+						<button ng-show="caseList.enquiry.modified">SAVE</BUTTON>
+					</div>
+				</div>
+				<!--conflit check panel-->
+				<div class="conflict-check-panel col-sm-6">
+					<span>Automatic conflict check</span>
+					<!--if no conflicts, show green-->
+					<div ng-hide="caseList.enquiry.conflicts.length" class="alert-success">Conflict check disabled</div>
+					<!-- if there are any, display them-->
+					<div ng-show="caseList.enquiry.conflicts.length" ng-repeat="conflict in caseList.enquiry.conflicts track by $index" class="alert-warning">
+						<a href='#'>{{conflict.name}}</a>
+					</div>
+				</div>
+			</div>
+			<div class="row panel panel-default form-horizontal col-sm-12">
+				<div class="row form-group">
+					<input ng-model="caseList.enquiry.nametitle" ng-change="caseList.autoSaveEnquiry()" type="text" placeholder="Title" size=5>
+					<input ng-model="caseList.enquiry.caseFields['clients'][0]['person']['name']" ng-change="caseList.conflictNameCheck(); caseList.autoSaveEnquiry()" type="text" placeholder="Name" size=21>
+				</div>
+				<div class="row form-group">
+					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['mobile']" type="text" placeholder="Mobile" size=13>
+					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['landline']" type="text" placeholder="Landline" size=13>
+					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['email']" type="text" placeholder="Email" size=30>
+				</div>
+				<div class="row form-group">
+					<input ng-model="caseList.enquiry.address" type="text" placeholder="Address" size=50>
+					<input ng-model="caseList.enquiry.postcode" type="text" placeholder="Postcode" size=12>
+				</div>
+				<div class="row">
+					<textarea ng-model="caseList.enquiry.caseFields['documents'][0]['contents']" cols=60 rows=10 placeholder="Notes"></textarea>
+				</div>
+				<div class="row">
+					<input ng-model="caseList.enquiry.title" size=60 placeholder="Matter">
+					<input ng-model="caseList.enquiry.category" size=20 placeholder="Category">
+					<div ng-controller="feeEarners"><!-- this uses the feeEarner controller-->
+						<select ng-model="selected" ng-options="opt.initials for opt in list"></select>
+						{{selected.name}}
+					</div>
+				</div>
+			</div>
+			<button ng-click="caseList.saveEnquiry()">SAVE ENQUIRY</button>
+		</div><!-- end of enquiry form -->
+		
+		
+	</div><!-- end of columns -->
+	
+</div><!-- end of outer bootstrap container and caseList controller-->
 
 <div id="divBottom" class="ui-widget-content">BOTTOM</div>
 

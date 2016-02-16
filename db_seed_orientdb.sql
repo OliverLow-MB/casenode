@@ -26,7 +26,8 @@ CREATE PROPERTY doc.title STRING
 CREATE PROPERTY doc.date DATE
 
 CREATE CLASS matter EXTENDS V
-CREATE PROPERTY case.title STRING
+CREATE PROPERTY matter.type STRING
+CREATE PROPERTY matter.title STRING
 
 CREATE CLASS info EXTENDS V
 
@@ -38,10 +39,12 @@ CREATE VERTEX person CONTENT {name: "Barry Smith", title: "Mr", firstname:"Barry
 CREATE VERTEX person CONTENT {name: "Sir Patrick Moore", title: "Sir", firstname:"Patrick", lastname:"Moore", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"sirpatrick@example.com", mobile:"077nn123n"}}
 CREATE VERTEX person CONTENT {name: "King Charles II", title: "His Majesty", firstname:"Charles", lastname:"Stuart", legaltype:"natural", salutation:"Mr Smith", contacts:{email:"CharlesII@example.com"}}
 CREATE VERTEX person CONTENT {name: "Moneylenders Limited", legaltype:"fictional", salutation:"Sirs", contacts:{email:"enquiries@moneylenders.example.com", phone:"0800 nnnnnn"}}
+CREATE VERTEX person CONTENT {name: "David Jones", legaltype:"natural", salutation:"Mr Jones", contacts:{email:"davyjones@example.com", mobile:"07099 10101", twitter:"@davyjones3992"}}
 #13:9
 #13:10
 #13:11
 #13:14
+#13:15
 
 CREATE VERTEX address CONTENT {line1: "10, South Ridge", line2:"Berkamstone", line3:"Surrey", ISOcountrycode: "GB", postcode:"GU99 2BR"}
 CREATE VERTEX address CONTENT {line1: "Skylight Hall", line2:"Dark Lane", line3:"Orionsville", line4:"Essex", ISOcountrycode: "GB", postcode:"CO89 2QQ"}
@@ -63,7 +66,7 @@ INSERT INTO doc (doctype, date, title) VALUES
 (".pdf", "2016-01-09", "Letter from a creditors"),
 (".msg", "2016-01-15", "Default notice")
 CREATE VERTEX doc CONTENT {doctype: ".pdf", date: "2014-02-05", title: "Judgment order"}
-
+CREATE VERTEX doc CONTENT {doctype: ".txt", date: "2016-02-16 12:51:08", title:"Note of enquiry", contents:"Wants to know if we are able to assist with setting aside a judgment.\nClaimant: not sure\nDate of Judgment: not sure - July 2013.\n\nSent T&C's\nClient will email credit report. "}
 #14:7
 #14:8
 #14:9
@@ -72,20 +75,27 @@ CREATE VERTEX doc CONTENT {doctype: ".pdf", date: "2014-02-05", title: "Judgment
 #14:12
 #14:13
 #14:21
+#14:22
 
 
 
-INSERT INTO matter (title) VALUES
-("Application to set aside CCJ v MoneyLenders"),
-("Application to set aside CCJ v Big Bank"),
-("Enduring power of attorney for children")
-
+INSERT INTO matter (type, title) VALUES
+("Client", "Application to set aside CCJ v MoneyLenders"),
+("Client", "Application to set aside CCJ v Big Bank"),
+("Enquiry", "Enduring power of attorney for children")
+CREATE VERTEX matter CONTENT {type:"Enquiry", title:"Set aside default judgment")
 #12:3
 #12:4
 #12:5
+#12:8
 
 CREATE VERTEX info CONTENT{label: "Claim number", value: "B00AA1234"}
+CREATE vertex info SET label="Date of issue", value="23 Oct 2013"
 #15:0
+#15:1
+
+CREATE VERTEX enquiry CONTENT{date: '2016-02-16'}
+
 
 //EDGE naming natural language with 'is', so "filedIn" edge FROM doc TO case because the doc is "filedIn" that case.
 //e.g. party FROM person TO case because that person IS a party to that case. 
@@ -94,6 +104,7 @@ CREATE CLASS client EXTENDS E
 CREATE EDGE client FROM #13:9 TO #12:3
 CREATE EDGE client FROM #13:10 TO #12:4
 CREATE EDGE client FROM #13:11 TO #12:5
+CREATE EDGE client FROM #13:15 TO #12:8
 
 
 CREATE CLASS filedIn EXTENDS E
@@ -105,6 +116,7 @@ CREATE EDGE filedIn FROM #14:11 TO #12:5
 CREATE EDGE filedIn FROM #14:12 TO #12:4
 CREATE EDGE filedIn FROM #14:13 TO #12:4
 CREATE EDGE filedIn FROM #14:21 TO #12:3
+CREATE EDGE filedIn FROM #14:22 TO #12:8
 
 
 CREATE CLASS party EXTENDS E
@@ -133,6 +145,7 @@ CREATE EDGE evidenceSource FROM #15:0 TO #14:21
 
 CREATE CLASS informs EXTENDS E
 CREATE EDGE informs from #15:0 to #12:3
+CREATE EDGE informs from #15:1 to #12:3
 
 
 

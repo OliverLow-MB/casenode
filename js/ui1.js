@@ -22,11 +22,7 @@ var obr = {};
 ////////////////////////////
 //define object classes
 //
-{
-function Edge(eOut, eIn){
-	this.eIn=eIn;
-	this.eOut=eOut;
-}
+{ //this statement block is just for folding in the editor
 /* NB class keyword requires Firefox v 45, Google Chrome v 49, MS Edge v 13, or newer. 
 class TcaseFields(){
 	constructor(type){
@@ -39,9 +35,9 @@ class TcaseFields(){
 	}
 }
 */
-function TcaseFields(){
+function TcaseFields(type){
 //	constructor(type){
-		this.type="";
+		this.type= type || "";
 		this.caseDetails={};
 		this.clients=[];
 		this.contacts=[];
@@ -51,33 +47,27 @@ function TcaseFields(){
 }
 
 function Tcontact(){
-	this.type=(type || "natural");
-	this.getDisplayName=function(){
-		if (this.type=="legal"){
-			return this.firstname;
-		} else {
-			return this.legalname;
-		}
-	}
+	this.person = {};
+	this.party = ""; 
 }
 
 function Tperson(p){
+	this.type = (p.type || "natural");// legal personality: "fictional" or "natural"
 	this.firstname=(p.firstname || "");
 	this.lastname=(p.lastname || "");
 	this.title=(p.title || "");
-	this.legalname=(p.legalname || "" ); //this could be used nicely and set to "Mr John Smith" if undefined. 
+	this.name=(p.name || "" ); //general purpose name, used for display
 	this.salutation=(p.salutation || ""); //e.g. Miss Jones, Bob, Sirs
-	if(this.legalname==""){
-		if (this.type=="legal"){
-			this.legalname = this.companyname;
-		} else {
-			this.legalname = this.title + " " + this.firstname + " " + this.lastname;
+	if(this.name==""){
+		if (this.type=="natural"){
+			this.name = this.title + " " + this.firstname + " " + this.lastname;
 		}
 	}
 }
 
 function Tinfo(){
-	//an arbitary collection, but useful for pre-loading for workflows
+	this.label="";
+	this.value="";
 }
 function Tdoc(){
 	this.title="";
@@ -656,6 +646,9 @@ $(document).ready(function(){
 	//$("#divTemplates").accordion({collapsible: true, heightStyle: "content"});
 	//make the date picker work
 	$("#datePicker").datepicker({changeMonth: true, changeYear: true});
+	//make the dialog boxs work
+	$("#dialogDocPreview").dialog({autoOpen: false});
+	$("#divEnquiry").dialog({autoOpen: false, title: "New Enquiry", width: "55%"});
 });
 
 //create angular app, indlucing the sanitize code to allow HTML binding
@@ -683,9 +676,12 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 
 		//initialise local variables
 		//set the initial active tabs
-		this.activeTab = {left:"Cases", middle: "File", right: "Enquiry"};
+		this.activeTab = {left:"Clients", middle: "File", right: "Note"};
 		//initialise enquiry form
 		this.enquiry = {timestamp:0};
+		
+		//set currPreviewDoc to an empty object
+		this.currPreviewDoc = {};
 		
 		//instantiate fuzzy match function
 		this.conflict = new Fuse(testData["caseFields"], {keys: ["name"], threshold: 0.35}); //0.35 by trial and error
@@ -696,7 +692,7 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 			//var results2 = this.conflict.search(this.enquiry.companyname + " ");
 			//display any results in the conflict box
 			//this.enquiry.conflicts=results1.concat(results2);
-			this.enquiry.conflicts = this.conflict.search(this.enquiry.caseFields['name']);
+			///this.enquiry.conflicts = this.conflict.search(this.enquiry.caseFields.clients[0].person['name']);
 	////////why when we clear fields is the conflict showing overmatched?
 		}
 	}
@@ -740,15 +736,12 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		if ( ! this.enquiry.caseFields["type"] ) {
 			var d =new Date(); 
 			console.log(this.list.length);
-			//push the enquiry onto the casefield
+			//push the enquiry onto the caseField list
 			this.list.push(this.enquiry.caseFields);
 			//set-up some default data - this is how we link the new enquiry form to the case data
-			//angular will create objects as required by the UI, but we can't assume any in particular exist
-			this.enquiry.caseFields["type"] = "enquiry";
-			this.enquiry.caseFields["contacts"] = [{party:"Client"}];
-			this.enquiry.caseFields["documents"] = [{title:"Note of enquiry", doctype:".txt", date:new Date().toLocaleDateString(), content:""}]
+			this.enquiry.caseFields.type="Enquiry";
+			//angular will create objects as required by the UI, but we can't assume any in particular exist other than set by initialiseEnquiry()
 			$scope.$apply(); //required to trigger angular digest because this function will be called by window.setTimeout
-			//this.enquiry.caseFields = this.list[this.list.push({type: "enquiry", timestamp: d.getTime()})];
 			console.log("created caseFields for client " + this.enquiry.caseFields['name']);
 		}
 		
@@ -761,11 +754,26 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 	}
 	//doc preview function
 	this.docPreview = function(doc){
+		//set the current previe doc to the one selected and show it in the dialog
+		this.currPreviewDoc=doc;
+		$("#dialogDocPreview").dialog("open");
 		console.log(doc.title + " url=" + doc.targetURL);
 		//open a new window to show the document
-		window.open(doc.targetURL,"PreviewWindow");
+		;
 	}
 	
+/*	//initialiseEnquiry - shows the bos and pre-loads data
+	this.initialiseEnquiry = function(){
+		console.log($scope.$id);
+		console.log(this.$id);
+		console.log(this.enquiry);
+		var l = this.enquiry = new TcaseFields("Enquiry"); //l will go out of scope, leaving this...
+		l.type="Enquiry";
+		l.documents[0]={doctype:".txt"};//the document we're editing now
+		$("#divEnquiry").dialog("open");
+
+	}
+*/
 	
 	//////////////////////////
 	//database functions
@@ -835,6 +843,7 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		console.log("saved myO");
 		
 	}
+	
 	//run initialisation
 	this.init();
 	console.log("started controller caseList");
@@ -851,6 +860,25 @@ uiApp.factory('notifyUser',['$window', function(appWindow){
 		appWindow.alert(msg);
 	}
 }]);
+
+//date filter function
+uiApp.filter('date', function() {
+	/*expects: input a date string e.g. "2016-01-19T12:43:000Z", withTime: true = show the time as well */
+	return function(input, withTime) {
+		input = input || "Undefined.";
+		if (withTime) return input.substr(0,10) + " " + input.substr(11,5);
+		return input.substr(0,10);
+	};
+});
+
+uiApp.filter('txt2HTML', function() {
+	/*expects: a string*/
+	return function(input) {
+		input = input || "*** NOT A .TXT FILE ***";
+		return input.replace(/\n|\r\n/g, "***<br />");
+	};
+});
+
 
 
 /////////////////////

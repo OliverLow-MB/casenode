@@ -150,7 +150,7 @@ uiApp.provider("backend",function(){
 							" (" + (cmr.in_filedIn ? cmr.in_filedIn.length : "no") + " docs, " + 
 							(cmr.in_informs ? cmr.in_informs.length : "no") + " infos)" 
 							);
-						obj.list[n]['type']='client';
+						obj.list[n]['type']=cmr.type;
 						obj.list[n].caseDetails = cmr;
 						//create the documents array - via docRIDs array (possibly missing). push each document record whose recordID in docRIDs onto the documents array
 						//if (cmr.docRIDs) for (var i=0; i<cmr.docRIDs.length; i++) (this.list[n].documents || (this.list[n].documents=[])).push(this.recordSets.docMap.get(cmr.docRIDs[i]).record)
