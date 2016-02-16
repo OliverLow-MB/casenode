@@ -789,52 +789,19 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 	//fetchMatters - fetches the matters in the first place
 	this.fetchMatters = function(){
 		//create a callback function to processing the data when ready, binding 'this' to this angular.controller instance 
-		var compileList = (function(){ 
-
-					//make a reference to the current case for updating the UI
-					this.current=this.list[0]; //assign the currCase to the default (will eb changed later)
-		
-		return
-		
-			if (this.recordSets) {
-				/*DEBUG*/console.log("recordSets:");
-				//for each case in caseMap, build up the list
-				/* for (var [k,v] of this.recordSets.caseMap.entries()) { NB this line does not work in google Chrome*/ 
-				for (var k of this.recordSets.matter.keys()) { 
-					//get the current record for this case
-					var cmr = this.recordSets.matter.get(k).record;
-					//create the list entry, creating the list itself if required
-					var n = (this.list || (this.list=[]) ).push( new TcaseFields) -1; //n is now the new index  
-					//create the caseDetails object
-					console.log("compiling case: " + k + " - " + cmr.title + 
-						" (" + (cmr.in_filedIn ? cmr.in_filedIn.length : "no") + " docs, " + 
-						(cmr.infoRIDs ? cmr.infoRIDs.length : "no") + " infos)" 
-						);
-					this.list[n]['type']='client';
-					this.list[n].caseDetails = cmr;
-					
-						
-					//create the clients array
-					if (cmr.clientRIDs) for (var i=0; i<cmr.clientRIDs.length; i++) {
-						(this.list[n].clients || (this.list[n].clients=[])).push(this.recordSets.personMap.get(cmr.clientRIDs[i]).record);
-					}	
-					//create the contacts array - contacts is made of from parties, and their addresses 
-					if (cmr.partyRIDs) for (var i=0; i<cmr.partyRIDs.length; i++) {
-						//push the person
-						(this.list[n].contacts || (this.list[n].contacts=[])).push({person:this.recordSets.personMap.get(cmr.partyRIDs[i]).record});
-						//add the address(es) to the person, for each address_id in person.in_address.out
-						
-					}	
-					
-						
-					
-				} //for each case
-			} else {
-				/*DEBUG*/console.log("compileList invoked but no recordSets available")
-			}	
+		var mattersFetched = (function(){ 
+			//make a reference to the current case for updating the UI
+			this.current=this.list[0]; //assign the currCase to the default (will eb changed later)
+			
+			//process the list of cases (created by backend) for use with the UI
+			for (var i = 0; i< this.list.length; i++){
+				//sort the docs into date order
+				this.list[i].documents.sort(function(a,b){return (a.date < b.date) });
+			}
+			
 		}).bind(this);  //'this' is lexically parsed, of we don't bind what 'this' means here, it will refer to the 'this' of the execution context calling the callback
-		//run the backend database query call
-		backend.fetchMatters(this, compileList);
+		//run the backend database query call which will add recordSets and list to this (controller)
+		backend.fetchMatters(this, mattersFetched);
 	}	
 	
 	////////////////////////////////

@@ -102,7 +102,7 @@
 				<div class="panel-group">
 					<div ng-repeat="case in caseList.list | filter:{type:'client'}" ><!-- only show clients in this list-->
 						<div ng-click="caseList.choose(case)" class="case-list-item panel panel-default" ng-class="{'active': caseList.currCaseN == $index}" ng-style="{'background-color' : case.caseStatusColor}" >
-							<span title="{{case.clients[0].name}}"> {{case.clients[0].name}}<br /></span>
+							<span title="{{case.clients[0].person.name}}"> {{case.clients[0].person.name}}<br /></span>
 							<span title="{{case.title}}"> {{case.caseDetails.title}}<br /></span>
 							<span title="{{case.caseExpecting}}"> {{case.caseDetails.caseExpecting}}</span>
 						</div>
@@ -113,7 +113,7 @@
 				<div class="panel-group">
 					<div ng-repeat="case in caseList.list | filter:{type:'enquiry'} track by $index" >
 						<div ng-click="caseList.choose(case)" class="case-list-item panel panel-default" ng-class="{'active': caseList.currCaseN == $index}" ng-style="{'background-color' : case.caseStatusColor}" >
-							<span title="{{case.name}}"> {{case.clientname}}<br /></span>
+							<span title="{{case.clients[0].person.name}}"> {{case.clients[0].person.name}}<br /></span>
 							<span title="{{case.category}}"> {{case.enquiryDetails.category}}<br /></span>
 							<span title="{{case.dateOfEnq}}"> {{case.enquiryDetails.dateOfEnq}}</span>
 						</div>
@@ -139,7 +139,10 @@
 			<div ng-show="caseList.activeTab['middle'] == 'File'" class="panel-group">
 			<span>Current {{caseList.current.type}} file</span>
 				<div class="case-list-item panel panel-default" ng-style="{'background-color' : caseList.current.caseStatusColor}">
-					<span title="{{caseList.current.name}}">{{caseList.current.clientname}}</span><br />
+					<div ng-repeat="client in caseList.current.clients track by $index">
+						<div ng-show="$index > 0">,<br /></div><!--add a new line before 2nd and subsequent clients-->
+						<span title="{{client.person.name}}">{{client.person.name}}</span>
+					</div>
 					<span title="{{caseList.current.title}}">{{caseList.current.caseDetails.title}}</span><br />
 					<span title="{{caseList.current.caseExpecting}}">{{caseList.current.caseDetails.caseExpecting}}</span>
 				</div>

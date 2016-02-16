@@ -133,7 +133,6 @@ uiApp.provider("backend",function(){
 							recordSets[prop] = mapByRID(res.data[prop])
 						}
 					}
-		obr=res.data
 					//assign recordSets to the object passed
 					obj['recordSets']=recordSets;
 					/*DEBUG*/console.log("recordSets:");
@@ -168,11 +167,19 @@ uiApp.provider("backend",function(){
 							//link the evidence source docs
 						}	
 						
-						//create the clients array UNFINSHED
+						//create the clients array 
 						if (cmr.in_client) for (var i=0; i<cmr.in_client.length; i++) {
-							(obj.list[n].client || (obj.list[n].client=[])).push(
-								obj.recordSets.person.get(recordSets.client.get(cmr.in_client[i]).record.out).record);
+							(obj.list[n].clients || (obj.list[n].clients=[])).push(
+								{person : obj.recordSets.person.get(recordSets.client.get(cmr.in_client[i]).record.out).record});
 						}	
+						
+						//create the contacts
+						if (cmr.in_party) for (var i=0; i<cmr.in_party.length; i++) {
+							(obj.list[n].contacts || (obj.list[n].contacts=[])).push(
+								{	party: recordSets.party.get(cmr.in_party[i]).record.role ,
+									person : obj.recordSets.person.get(recordSets.party.get(cmr.in_party[i]).record.out).record});
+						}	
+						
 						
 					} //for each case
 					
