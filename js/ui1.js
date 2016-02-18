@@ -718,14 +718,17 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		clearTimeout(t["autoSaveEnquiry"]); // we don't want to set multiple timeouts
 		t["autoSaveEnquiry"] = setTimeout( function(that){ //will pass current this (caseList instance) as 'that' as setTimeout executes in window context
 			console.log("timeout");
-			//if the enquiry does not have a time stamp then it's new, and needs to be created
-			if ( ! that.enquiry.timestamp){
-				var d = new Date(); //this should be GC'd straight away
-				that.enquiry.timestamp=d.getTime();
-				//create the data node in the CaseList, and link enquiry to it
-				that.saveEnquiry();
-			} else {
-				console.log("not new: " + that.enquiry.timestamp.toString());
+			//if the enquiry has at least a name and a note, then save it.
+			if ( that.enquiry.caseFields.clients && that.enquiry.caseFields.documents ){
+				//if the enquiry does not have a time stamp then it's new, and needs to be created
+				if ( ! that.enquiry.timestamp){
+					var d = new Date(); //this should be GC'd straight away
+					that.enquiry.timestamp=d.getTime();
+					//create the data node in the CaseList, and link enquiry to it
+					that.saveEnquiry();
+				} else {
+					console.log("not new: " + that.enquiry.timestamp.toString());
+				}
 			}
 		} , 2000, this)//3rd + params passed to function at call time (not work on old IE)
 	}
@@ -736,13 +739,14 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		if ( ! this.enquiry.caseFields["type"] ) {
 			var d =new Date(); 
 			console.log(this.list.length);
-			//push the enquiry onto the caseField list
-			this.list.push(this.enquiry.caseFields);
 			//set-up some default data - this is how we link the new enquiry form to the case data
 			this.enquiry.caseFields.type="Enquiry";
-			//angular will create objects as required by the UI, but we can't assume any in particular exist other than set by initialiseEnquiry()
-			$scope.$apply(); //required to trigger angular digest because this function will be called by window.setTimeout
-			console.log("created caseFields for client " + this.enquiry.caseFields['name']);
+			this.enquiry.caseFields.documents[0]['date'] = new Date().toISOString(); 
+			this.enquiry.caseFields.documents[0]['title']="Note of enquiry";			
+			this.enquiry.caseFields.documents[0]['doctype']=".txt";			
+			//push the enquiry onto the caseField list
+			this.list.push(this.enquiry.caseFields);
+			console.log("created caseFields for client " + this.enquiry.caseFields.clients[0].person.name);
 		}
 		
 	}
@@ -750,6 +754,8 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 	this.newEnquiry = function(){
 		//clear out the contents of enquiry
 		this.enquiry={timestamp:0};
+		$scope.$apply;
+		
 		
 	}
 	//doc preview function

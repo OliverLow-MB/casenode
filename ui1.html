@@ -87,6 +87,7 @@
 		  </div><!-- /.container-fluid -->
 		</nav>		
 	</div>
+	
 	<!-- main page section for interacting with cases -->	
 	<div class="row">
 		<input ng-model="myO.name"><button ng-click="savemyO()">SAVE</button>
@@ -98,6 +99,7 @@
 				<li ng-click="caseList.setTab('Clients','left')" ng-class="{active: caseList.activeTab['left'] == 'Clients'}"><a href="">Clients</a></li>
 				<li ng-click="caseList.setTab('Enquiries','left')" ng-class="{active: caseList.activeTab['left'] == 'Enquiries'}"><a href="">Enquiries</a></li>
 			</ul>
+			
 			<!-- cases list-->
 			<div ng-show="caseList.activeTab['left'] == 'Clients'">
 				<div class="panel-group">
@@ -305,20 +307,19 @@
 			</div>
 			<div class="row panel panel-default form-horizontal col-sm-12">
 				<div class="row form-group">
-					<input ng-model="caseList.enquiry.nametitle" ng-change="caseList.autoSaveEnquiry()" type="text" placeholder="Title" size=5>
-					<input ng-model="caseList.enquiry.caseFields['clients'][0]['person']['name']" ng-change="caseList.conflictNameCheck(); caseList.autoSaveEnquiry()" type="text" placeholder="Name" size=21>
+					<input ng-model="caseList.enquiry.caseFields['clients'][0]['person']['name']" ng-change="caseList.conflictNameCheck(); caseList.autoSaveEnquiry();" type="text" placeholder="Name (e.g. Mr. John Smith or Widgets R Us Limited)" size=48>
 				</div>
 				<div class="row form-group">
-					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['mobile']" type="text" placeholder="Mobile" size=13>
-					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['landline']" type="text" placeholder="Landline" size=13>
-					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['email']" type="text" placeholder="Email" size=30>
+					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['mobile']" type="text" placeholder="Mobile" size=13 ng-change="caseList.autoSaveEnquiry();">
+					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['landline']" type="text" placeholder="Landline" size=13 ng-change="caseList.autoSaveEnquiry();">
+					<input ng-model="caseList.enquiry.caseFields['contacts'][0]['person']['contacts']['email']" type="text" placeholder="Email" size=30 ng-change="caseList.autoSaveEnquiry();">
 				</div>
 				<div class="row form-group">
-					<input ng-model="caseList.enquiry.address" type="text" placeholder="Address" size=50>
-					<input ng-model="caseList.enquiry.postcode" type="text" placeholder="Postcode" size=12>
+					<input ng-model="caseList.enquiry.address" type="text" placeholder="Address" size=50 ng-change="caseList.autoSaveEnquiry();">
+					<input ng-model="caseList.enquiry.postcode" type="text" placeholder="Postcode" size=12 ng-change="caseList.autoSaveEnquiry();">
 				</div>
 				<div class="row">
-					<textarea ng-model="caseList.enquiry.caseFields['documents'][0]['contents']" cols=60 rows=10 placeholder="Notes"></textarea>
+					<textarea ng-model="caseList.enquiry.caseFields['documents'][0]['contents']" cols=60 rows=10 placeholder="Notes" ng-change="caseList.autoSaveEnquiry();"></textarea>
 				</div>
 				<div class="row">
 					<input ng-model="caseList.enquiry.title" size=60 placeholder="Matter">
