@@ -135,7 +135,7 @@ uiApp.provider("backend",function(){
 					}
 					//assign recordSets to the object passed
 					obj['recordSets']=recordSets;
-					/*DEBUG*/console.log("recordSets:");
+					/*DEBUG/console.log("recordSets:");*/
 					
 					//build up the data list 
 					

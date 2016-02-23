@@ -717,9 +717,8 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		console.log("setTimeout " + this.enquiry.timestamp.toString());
 		clearTimeout(t["autoSaveEnquiry"]); // we don't want to set multiple timeouts
 		t["autoSaveEnquiry"] = setTimeout( function(that){ //will pass current this (caseList instance) as 'that' as setTimeout executes in window context
-			console.log("timeout");
-			//if the enquiry has at least a name and a note, then save it.
-			if ( that.enquiry.caseFields.clients && that.enquiry.caseFields.documents ){
+			//if the enquiry has at least a name, a note, then save it.
+			if ( that.enquiry.caseFields.clients && that.enquiry.caseFields.documents){
 				//if the enquiry does not have a time stamp then it's new, and needs to be created
 				if ( ! that.enquiry.timestamp){
 					var d = new Date(); //this should be GC'd straight away
@@ -727,7 +726,6 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 					//create the data node in the CaseList, and link enquiry to it
 					that.saveEnquiry();
 				} else {
-					console.log("not new: " + that.enquiry.timestamp.toString());
 				}
 			}
 		} , 2000, this)//3rd + params passed to function at call time (not work on old IE)
@@ -738,7 +736,6 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 		//if the caseFields is undefined or has no 'type', then this is new, so create a new case variable for it
 		if ( ! this.enquiry.caseFields["type"] ) {
 			var d =new Date(); 
-			console.log(this.list.length);
 			//set-up some default data - this is how we link the new enquiry form to the case data
 			this.enquiry.caseFields.type="Enquiry";
 			this.enquiry.caseFields.documents[0]['date'] = new Date().toISOString(); 
@@ -746,14 +743,15 @@ uiApp.controller("caseList", ['$scope', '$http', 'notifyUser','backend', functio
 			this.enquiry.caseFields.documents[0]['doctype']=".txt";			
 			//push the enquiry onto the caseField list
 			this.list.push(this.enquiry.caseFields);
-			console.log("created caseFields for client " + this.enquiry.caseFields.clients[0].person.name);
+			console.log("created caseFields for enquirer " + this.enquiry.caseFields.clients[0].person.name);
 		}
 		
 	}
 	//new enquiry
 	this.newEnquiry = function(){
-		//clear out the contents of enquiry
+		//clear out the contents of enquiry to defaults
 		this.enquiry={timestamp:0};
+		$('#divEnquiry').dialog('open')
 		$scope.$apply;
 		
 		

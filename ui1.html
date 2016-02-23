@@ -69,7 +69,7 @@
 					</div>
 					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span> Search</button>
 				</form>
-				<button onclick="$('#divEnquiry').dialog('open')">New Enq</BUTTON>
+				<button ng-click="caseList.newEnquiry()">New Enq</BUTTON>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
@@ -322,7 +322,7 @@
 					<textarea ng-model="caseList.enquiry.caseFields['documents'][0]['contents']" cols=60 rows=10 placeholder="Notes" ng-change="caseList.autoSaveEnquiry();"></textarea>
 				</div>
 				<div class="row">
-					<input ng-model="caseList.enquiry.title" size=60 placeholder="Matter">
+					<input ng-model="caseList.enquiry.caseFields.caseDetails.title" size=60 placeholder="Matter">
 					<input ng-model="caseList.enquiry.category" size=20 placeholder="Category">
 					<div ng-controller="feeEarners"><!-- this uses the feeEarner controller-->
 						<select ng-model="selected" ng-options="opt.initials for opt in list"></select>
@@ -330,7 +330,7 @@
 					</div>
 				</div>
 			</div>
-			<button ng-click="caseList.saveEnquiry()">SAVE ENQUIRY</button>
+			<button ng-click="caseList.saveEnquiry()">OK</button>
 		</div><!-- end of enquiry form -->
 		
 		

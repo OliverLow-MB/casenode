@@ -213,7 +213,63 @@ router.post("/storeInfo", function(req,res){
 
 //storeEnquiry
 router.post("/storeEnquiry", function(req,res){
+	/*expects {enquiryObj:{timestamp, caseFields}}*/
 	//validate input
+	if (req.body.enquiryObj
+		&& req.body.enquiryObj.caseFields
+		&& req.body.enquiryObj.caseFields.caseDetails
+		&& req.body.enquiryObj.caseFields.documents
+		){
+		var db=DBConn();
+		//store the matter details caseFields.caseDetails
+		db.create('VERTEX', 'matter').set(req.body.enquiryObj.caseFields.caseDetails).one()
+			.then( function(result){ //ok
+				
+				//store the document
+				/*DEBUG/console.log(result);/**/
+				var matterRID= result['@rid'].toJSON(); //this will be the record ID as a string
+				console.log("storeEnquiry: created matter " + matterRID);
+				db.create('VERTEX', 'doc').set(req.body.enquiryObj.caseFields.documents[0]).one()
+				.then( function(result){ //ok
+					var docRID=result['@rid'].toJSON(); //store RID for linking edges
+					console.log("storeEnquiry: created doc " + docRID);
+					
+					//link the document to the matter
+					db.create('EDGE','filedIn').from(docRID).to(matterRID).one()
+					.then( function(result){
+						
+						//store the person
+						//separate the address, if any
+						var addressObj;
+						if (req.body.enquiryObj.caseFields.clients[0].person.addresses){
+							addressObj = req.body.enquiryObj.caseFields.clients[0].person.addresses[0];
+							delete req.body.enquiryObj.caseFields.clients[0].person.addresses;
+						}
+						db.create("VERTEX","person").set(req.body.enquiryObj.caseFields.clients[0].person).one()
+						.then(function(result){
+							var personRID=result['@rid'].toJSON();//a string of the recordIDs
+							console.log("storeEnquiry: created person " + personRID);
+
+							//link the person as client and as a contact
+							db.create('EDGE','client').from(personRID).to(matterRID).one()
+							.then( function(result){
+								db.create('EDGE','party').from(personRID).to(matterRID).set({role:"Client"}).one()
+								.then( function(result){
+
+										res.status(200).end("{'result':'OK'}");
+
+								}, function (err) {res.status(500).end(JSON.stringify(err))})
+							}, function (err) {res.status(500).end(JSON.stringify(err))})
+						}, function (err) {res.status(500).end(JSON.stringify(err))})
+					}, function (err) {res.status(500).end(JSON.stringify(err))})
+				}, function (err) {res.status(500).end(JSON.stringify(err))})
+			}, function(err){ res.status(500).end(JSON.stringify(err))})
+			;
+		
+		db.close();
+	} else {
+		res.status(400).end("Invalid enquiryObj supplied.")
+	}
 	
 });
 
@@ -464,6 +520,33 @@ router.post("/test", function(req,res){
 	db.close();
 	//res.end(" ... closed.");
 });
+
+//////////////////////////////////////////
+// database functions
+//
+
+
+/* addMatter  - adds a new matter and returns its ID
+expects: a matter object, the basic fields for a matter object, 
+{title:  }
+returns: {success:true|false, '@rid': recordID, err: error result}
+*/
+function addMatter(matterObj){
+	//check input
+	{
+		var db=DBConn();
+		db.create('VERTEX', 'matter').set(matterObj).one()
+			.then( function(result){ //ok
+				/*DEBUG*/console.log(result);/**/
+				console.log("addMatter: created " + result['@rid'])
+				return {success:true, '@rid': result['@rid']}
+			}, function(err){ //err
+				return {success:false, 'err': err}
+			}
+		);
+		db.close();
+	}
+}
 
 ////////////////////////////////////////
 // utility functions
