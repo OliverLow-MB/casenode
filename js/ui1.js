@@ -627,7 +627,9 @@ testData["costs"]=[
 
 //initialise JQuery UI objects
 $(document).ready(function(){
-	//make the icons draggable
+    //make the edit button draggable
+    $("#btnEdit").draggable({ revert: true, helper: "clone" });
+    //make the icons draggable
 	$("#btnPhone").draggable({revert: true, helper: "clone"});
 	$("#btnEmail").draggable({revert: true, helper: "clone"});
 	$("#btnDoc").draggable({revert: true, helper: "clone"});
@@ -639,7 +641,13 @@ $(document).ready(function(){
 		drop: function( event, ui ) {
 			console.log(ui.draggable[0].id); // this refers to the id of the dragged element
 		}
-	});
+    });
+    //make contacts editable
+    $("#contactbox").droppable({
+        accept: "#btnEdit",
+        hoverClass: "ui-state-hover",
+        drop: function (event, ui){ console.log(ui.draggable[0].id); }
+    });
 	//make the doc templates draggable (are they all there yet?)
 	$(".doc-template").draggable({revert: true, helper: "clone"});
 	//make the templates accordion (NOT WORKING)

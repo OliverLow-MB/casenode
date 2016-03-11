@@ -1,15 +1,10 @@
 {
   "name": "casenode",
-  "description": "CaseNode case management system",
-  "author": "Oliver Low",
-  "version": "0.2.2",
-  "private": true,
-  "scripts": {
-    "start": "node casenode"
-  },  
-  "dependencies": {
-    "express": "3.3.4",
-	"orientjs": "1.5.0",
-	"node-mysql": "0.4.0"
+  "version": "0.0.0",
+  "description": "casenode",
+  "main": "server.js",
+  "author": {
+    "name": "Oliver.Low",
+    "email": ""
   }
 }
