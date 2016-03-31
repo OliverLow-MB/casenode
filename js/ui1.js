@@ -643,10 +643,10 @@ $(document).ready(function(){
 		}
     });
     //make contacts editable
-    $("#contactbox").droppable({
+    $(".contactbox").droppable({
         accept: "#btnEdit",
         hoverClass: "ui-state-hover",
-        drop: function (event, ui){ console.log(ui.draggable[0].id); }
+        drop: function (event, ui){ console.log(ui.draggable[0].id + " - " + ui.droppable[0].id); }
     });
 	//make the doc templates draggable (are they all there yet?)
 	$(".doc-template").draggable({revert: true, helper: "clone"});

@@ -1,0 +1,76 @@
+<!doctype html>
+<!-- casenode ui2.html - main HTML file -->
+<html lang='en'>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel='stylesheet' type='text/css' href="css/jquery-ui.css">
+	<script type='text/javascript' src='js/jquery.js'></script>
+	<script type='text/javascript' src="js/jquery-ui.js"></script>
+</head>
+<!-- stylesheet -->
+<style>
+.stackleft {
+	float: left;
+}
+.stackright{
+	float: right;
+}
+.menu {
+	font-family: sans-serif;
+}
+.menu *{
+	margin: 2px;
+	background-color: white;
+	color: gray;
+	border: 2px solid yellow;
+}
+</style>
+
+<!-- layout -->
+
+<body >
+
+	<!--outer  visible container-->
+	<div>
+	
+		<!-- Top menu bar -->
+		<div class='menu'>
+			<div class='stackleft'>CaseNode - Mason Bullock</div>
+			<div class='stackleft ui-button'>EDIT</div>
+			<div class='stackright ui-button'>LOGIN</div>
+		</div>
+	</div>
+	<br />
+	<hr style="float:clear">
+	<!--case list pane-->
+	<div class='stackleft' style="width:25%"> 
+		<table>
+		<tr><td>
+			SIDE
+		</tr></td>
+		</table>
+	</div>
+	<!--main list pane-->
+	<div class='stackleft' style="width:60%"> 
+		<table>
+		<tr><td>
+			MIDDLE
+		</tr></td>
+		</table>
+	</div>
+	<div class='stackleft' style="width:15%"> 
+		<table>
+		<tr><td>
+			TOOL BUTTONS
+		</tr></td>
+		</table>
+	</div>
+
+
+	<!-- invisible and pop-ups container-->
+	<div>
+	</div>
+	
+</body>
+</html>
